@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import Fastify, { FastifyInstance } from "fastify";
-import { cashRoutes } from "../routes/cash.js";
+
+process.env.ESCROW_CONTRACT_ID = "C_TEST_CONTRACT_1234567890123456789012345678901234";
+process.env.PLATFORM_SECRET_KEY = "S_TEST_SECRET_KEY_FOR_TESTING_ONLY_1234567890";
+
+const { cashRoutes } = await import("../routes/cash.js");
 
 describe("Cash Routes", () => {
   let app: FastifyInstance;

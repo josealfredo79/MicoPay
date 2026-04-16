@@ -13,6 +13,7 @@ import { cetesRoutes } from "./routes/cetes.js";
 import { bazaarRoutes } from "./routes/bazaar.js";
 import { merchantRoutes } from "./routes/merchants.js";
 import { startRelayer, getRelayerStats } from "./services/relayer.js";
+import { initCashRequestsTable } from "./services/cash-requests.js";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
 const NODE_ENV = process.env.NODE_ENV ?? "development";
@@ -38,6 +39,13 @@ app.register(bazaarRoutes);
 app.register(merchantRoutes);
 
 async function start() {
+  try {
+    await initCashRequestsTable();
+    console.log("Database initialized: cash_requests table ready");
+  } catch (err) {
+    console.warn("Database initialization skipped (no DB configured):", err);
+  }
+
   await app.listen({ port: PORT, host: "0.0.0.0" });
   console.log(`MicoPay API running on http://localhost:${PORT}`);
   console.log(`WebSocket available at ws://localhost:${PORT}/ws`);

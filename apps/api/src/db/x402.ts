@@ -1,4 +1,4 @@
-import { query, getOne, getMany } from './schema.js';
+import { query, getOne } from './schema.js';
 
 export interface X402PaymentRow {
   tx_hash: string;

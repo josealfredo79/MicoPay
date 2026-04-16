@@ -92,7 +92,7 @@ export async function authRoutes(app: FastifyInstance & { jwt: any }) {
     challenges.delete(stellar_address);
 
     // Find or create user
-    let user = await db.getOne(
+    const user = await db.getOne(
       'SELECT id, stellar_address, username FROM users WHERE stellar_address = $1',
       [stellar_address],
     );
