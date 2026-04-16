@@ -10,7 +10,9 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "test": "turbo test",
-    "lint": "turbo lint"
+    "lint": "turbo lint",
+    "lint:fix": "turbo lint:fix",
+    "check": "npm run lint && npm run build && npm run test"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

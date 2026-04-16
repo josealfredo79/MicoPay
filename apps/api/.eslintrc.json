@@ -1,0 +1,59 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module"
+  },
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "rules": {
+    "@typescript-eslint/no-unused-vars": ["error", {
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_"
+    }],
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-require-imports": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "no-console": "warn",
+    "no-unused-vars": "off",
+    "no-empty": "warn",
+    "no-constant-condition": "warn",
+    "@typescript-eslint/triple-slash-reference": "off"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off"
+      }
+    },
+    {
+      "files": [
+        "src/scripts/**",
+        "src/db/**",
+        "src/services/**",
+        "src/routes/bazaar.ts",
+        "src/routes/cetes.ts",
+        "src/routes/demo.ts",
+        "src/routes/swaps.ts",
+        "src/routes/trades.ts",
+        "src/routes/agent.ts",
+        "src/routes/auth.ts",
+        "src/routes/stellar.ts",
+        "src/routes/users.ts",
+        "src/schemas/**",
+        "src/types.d.ts"
+      ],
+      "rules": {
+        "@typescript-eslint/no-unused-vars": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["dist", "node_modules"]
+}
