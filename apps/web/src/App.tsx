@@ -5,10 +5,11 @@ import DemoTerminal from "./components/DemoTerminal";
 import ReputationPanel from "./components/ReputationPanel";
 import BazaarFeed from "./components/BazaarFeed";
 import MerchantRegistration from "./components/MerchantRegistration";
+import PaymentPanel from "./components/PaymentPanel";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:3000";
 
-type Tab = "demo" | "bazaar" | "reputation" | "fund" | "services" | "register";
+type Tab = "demo" | "bazaar" | "reputation" | "fund" | "services" | "register" | "wallet";
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>("demo");
@@ -19,6 +20,7 @@ export default function App() {
     { id: "reputation", label: "⭐ Reputación" },
     { id: "fund",       label: "💚 Fund" },
     { id: "register",   label: "🍄 Ser Merchant" },
+    { id: "wallet",     label: "👛 Wallet" },
     { id: "services",   label: "📡 Servicios" },
   ];
 
@@ -97,6 +99,7 @@ export default function App() {
         {activeTab === "reputation" && <ReputationPanel apiUrl={API_URL} />}
         {activeTab === "fund"       && <FundWidget      apiUrl={API_URL} />}
         {activeTab === "register"   && <MerchantRegistration apiUrl={API_URL} />}
+        {activeTab === "wallet"     && <PaymentPanel apiUrl={API_URL} />}
         {activeTab === "services"   && <ServiceCatalog  apiUrl={API_URL} />}
       </main>
     </div>
