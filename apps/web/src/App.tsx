@@ -1,107 +1,138 @@
-import { useState } from "react";
-import FundWidget from "./components/FundWidget";
-import ServiceCatalog from "./components/ServiceCatalog";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import Home from "./pages/Home";
+import DepositMap from "./pages/DepositMap";
+import DepositRequest from "./pages/DepositRequest";
+import DepositQR from "./pages/DepositQR";
+import DepositChat from "./pages/DepositChat";
+import SuccessScreen from "./pages/SuccessScreen";
+import CashoutRequest from "./pages/CashoutRequest";
+import Explore from "./pages/Explore";
 import DemoTerminal from "./components/DemoTerminal";
+import ServiceCatalog from "./components/ServiceCatalog";
 import ReputationPanel from "./components/ReputationPanel";
 import BazaarFeed from "./components/BazaarFeed";
-import MerchantRegistration from "./components/MerchantRegistration";
-import PaymentPanel from "./components/PaymentPanel";
+import FundWidget from "./components/FundWidget";
 
 const API_URL = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:3000";
 
-type Tab = "demo" | "bazaar" | "reputation" | "fund" | "services" | "register" | "wallet";
-
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab>("demo");
-
-  const tabs: { id: Tab; label: string }[] = [
-    { id: "demo",       label: "⚡ Demo" },
-    { id: "bazaar",     label: "🕸️ Bazaar" },
-    { id: "reputation", label: "⭐ Reputación" },
-    { id: "fund",       label: "💚 Fund" },
-    { id: "register",   label: "🍄 Ser Merchant" },
-    { id: "wallet",     label: "👛 Wallet" },
-    { id: "services",   label: "📡 Servicios" },
-  ];
-
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100" style={{ fontFamily: "monospace" }}>
-      {/* Header */}
-      <header style={{
-        borderBottom: "1px solid #1f2937", padding: "1rem 1.5rem",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <span style={{ fontSize: "1.5rem" }}>🍄</span>
-          <div>
-            <h1 style={{ margin: 0, fontSize: "1.1rem", fontWeight: "bold", color: "white" }}>
-              MicoPay Protocol
-            </h1>
-            <p style={{ margin: 0, fontSize: "0.72rem", color: "#6b7280" }}>
-              La primera API que da a agentes IA acceso a efectivo físico en México · x402 on Stellar
-            </p>
-          </div>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <a
-              href="https://gamma.app/docs/Empowering-everyone-through-digital-money-51bfqke37x9sjst?mode=doc"
-              target="_blank" rel="noopener noreferrer"
-              style={{
-                fontSize: "0.72rem", color: "#a78bfa", textDecoration: "none",
-                border: "1px solid #7c3aed", borderRadius: "5px", padding: "0.25rem 0.6rem",
-              }}
-            >
-              📊 Presentación
-            </a>
-            <a
-              href="http://localhost:5181"
-              target="_blank" rel="noopener noreferrer"
-              style={{
-                fontSize: "0.72rem", color: "#4ade80", textDecoration: "none",
-                border: "1px solid #16a34a", borderRadius: "5px", padding: "0.25rem 0.6rem",
-              }}
-            >
-              📱 App MicoPay
-            </a>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", fontSize: "0.72rem" }}>
-            <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
-            <span style={{ color: "#4ade80" }}>testnet live</span>
-            <span style={{ color: "#4b5563" }}>· Sin cuenta · Sin API key</span>
-          </div>
-        </div>
-      </header>
-
-      {/* Tabs */}
-      <nav style={{ borderBottom: "1px solid #1f2937", padding: "0 1.5rem", display: "flex", gap: "0.25rem" }}>
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            style={{
-              padding: "0.75rem 1rem", fontSize: "0.875rem",
-              background: "none", border: "none",
-              borderBottom: activeTab === tab.id ? "2px solid #4ade80" : "2px solid transparent",
-              color: activeTab === tab.id ? "#4ade80" : "#6b7280",
-              cursor: "pointer", transition: "color 0.15s",
-            }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-
-      {/* Content */}
-      <main style={{ padding: "1.5rem", maxWidth: "900px", margin: "0 auto" }}>
-        {activeTab === "demo"       && <DemoTerminal   apiUrl={API_URL} />}
-        {activeTab === "bazaar"     && <BazaarFeed     apiUrl={API_URL} />}
-        {activeTab === "reputation" && <ReputationPanel apiUrl={API_URL} />}
-        {activeTab === "fund"       && <FundWidget      apiUrl={API_URL} />}
-        {activeTab === "register"   && <MerchantRegistration apiUrl={API_URL} />}
-        {activeTab === "wallet"     && <PaymentPanel apiUrl={API_URL} />}
-        {activeTab === "services"   && <ServiceCatalog  apiUrl={API_URL} />}
-      </main>
-    </div>
+    <Routes>
+      {/* Mobile App Routes */}
+      <Route path="/" element={<HomeWrapper />} />
+      <Route path="/deposit/map" element={<DepositMapWrapper />} />
+      <Route path="/deposit/request" element={<DepositRequestWrapper />} />
+      <Route path="/deposit/qr" element={<DepositQRWrapper />} />
+      <Route path="/deposit/chat" element={<DepositChatWrapper />} />
+      <Route path="/success" element={<SuccessScreenWrapper />} />
+      <Route path="/cashout" element={<CashoutRequestWrapper />} />
+      <Route path="/explore" element={<ExplorePageWrapper />} />
+      
+      {/* Legacy Tabs (for demo) */}
+      <Route path="/demo" element={<DemoPage />} />
+      <Route path="/bazaar" element={<BazaarPage />} />
+      <Route path="/reputation" element={<ReputationPage />} />
+      <Route path="/fund" element={<FundPage />} />
+      <Route path="/services" element={<ServicesPage />} />
+    </Routes>
   );
 }
+
+// Wrappers that handle navigation
+
+function HomeWrapper() {
+  const navigate = useNavigate();
+  return (
+    <Home 
+      onNavigateCashout={() => navigate('/cashout')}
+      onNavigateDeposit={() => navigate('/deposit/map')}
+      token={null}
+    />
+  );
+}
+
+function DepositMapWrapper() {
+  const navigate = useNavigate();
+  return (
+    <DepositMap 
+      onBack={() => navigate(-1)}
+      onSelectOffer={(id) => navigate('/deposit/request?agent=' + id)}
+      amountMxn={500}
+      userLat={19.4195}
+      userLng={-99.1627}
+    />
+  );
+}
+
+function DepositRequestWrapper() {
+  const navigate = useNavigate();
+  return (
+    <DepositRequest 
+      onBack={() => navigate(-1)}
+      onSearch={(amount) => navigate('/deposit/map?amount=' + amount)}
+    />
+  );
+}
+
+function DepositQRWrapper() {
+  const navigate = useNavigate();
+  return (
+    <DepositQR 
+      onBack={() => navigate(-1)}
+      onChat={() => navigate('/deposit/chat')}
+      onSuccess={() => navigate('/success?type=deposit')}
+    />
+  );
+}
+
+function DepositChatWrapper() {
+  const navigate = useNavigate();
+  return (
+    <DepositChat 
+      onBack={() => navigate(-1)}
+      onViewQR={() => navigate('/deposit/qr')}
+    />
+  );
+}
+
+function SuccessScreenWrapper() {
+  const navigate = useNavigate();
+  const params = new URLSearchParams(window.location.search);
+  const type = (params.get('type') as 'cashout' | 'deposit') || 'deposit';
+  const amount = params.get('amount') || '500';
+  const commission = params.get('commission') || '2';
+  const received = params.get('received') || '498';
+  const agentName = params.get('agent') || 'Tienda';
+  return (
+    <SuccessScreen 
+      type={type}
+      amount={amount}
+      commission={commission}
+      received={received}
+      agentName={agentName}
+      onHome={() => navigate('/')}
+    />
+  );
+}
+
+function CashoutRequestWrapper() {
+  const navigate = useNavigate();
+  return (
+    <CashoutRequest 
+      onBack={() => navigate(-1)}
+      onSearch={(amount) => navigate('/deposit/map?amount=' + amount)}
+    />
+  );
+}
+
+function ExplorePageWrapper() {
+  const navigate = useNavigate();
+  return <Explore onBack={() => navigate(-1)} />;
+}
+
+// Legacy pages for tabs
+function DemoPage() { return <DemoTerminal apiUrl={API_URL} />; }
+function BazaarPage() { return <BazaarFeed apiUrl={API_URL} />; }
+function ReputationPage() { return <ReputationPanel apiUrl={API_URL} />; }
+function FundPage() { return <FundWidget apiUrl={API_URL} />; }
+function ServicesPage() { return <ServiceCatalog apiUrl={API_URL} />; }
