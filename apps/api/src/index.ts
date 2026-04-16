@@ -11,6 +11,7 @@ import { serviceRoutes } from "./routes/services.js";
 import { demoRoutes } from "./routes/demo.js";
 import { cetesRoutes } from "./routes/cetes.js";
 import { bazaarRoutes } from "./routes/bazaar.js";
+import { merchantRoutes } from "./routes/merchants.js";
 import { startRelayer, getRelayerStats } from "./services/relayer.js";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
@@ -34,6 +35,7 @@ app.register(serviceRoutes);
 app.register(demoRoutes);
 app.register(cetesRoutes);
 app.register(bazaarRoutes);
+app.register(merchantRoutes);
 
 async function start() {
   await app.listen({ port: PORT, host: "0.0.0.0" });
