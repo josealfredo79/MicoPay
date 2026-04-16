@@ -19,7 +19,7 @@
     "@fastify/rate-limit": "^9.1.0",
     "@fastify/swagger": "6",
     "@fastify/swagger-ui": "2",
-    "@fastify/websocket": "^11.2.0",
+    "@fastify/websocket": "^10.0.1",
     "@micopay/sdk": "*",
     "@micopay/types": "*",
     "@stellar/stellar-sdk": "^13.1.0",
