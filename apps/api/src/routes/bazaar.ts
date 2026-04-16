@@ -18,6 +18,7 @@ import {
   getBazaarStats,
   type BazaarIntentRow,
 } from "../db/bazaar.js";
+import { validateOrThrow, bazaarIntentSchema, bazaarQuoteSchema, bazaarAcceptSchema, ValidationError } from "../schemas/validation.js";
 
 interface AssetInfo {
   chain: string;
@@ -111,10 +112,14 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
     "/api/v1/bazaar/intent",
     { preHandler: requirePayment({ amount: "0.005", service: "bazaar_broadcast" }) },
     async (request, reply) => {
-      const body = request.body as Partial<BazaarIntent>;
-
-      if (!body.offered || !body.wanted) {
-        return reply.status(400).send({ error: "offered and wanted asset info required" });
+      let validated;
+      try {
+        validated = validateOrThrow(bazaarIntentSchema, request.body ?? {});
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          return reply.status(400).send({ error: "Validation failed", details: err.message });
+        }
+        throw err;
       }
 
       const agentAddress = request.payerAddress ?? "GUNKNOWN";
@@ -127,13 +132,13 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
       const newIntent = await createIntent({
         id,
         agent_address: agentAddress,
-        offered_chain: body.offered!.chain,
-        offered_symbol: body.offered!.symbol,
-        offered_amount: body.offered!.amount,
-        wanted_chain: body.wanted!.chain,
-        wanted_symbol: body.wanted!.symbol,
-        wanted_amount: body.wanted!.amount,
-        min_rate: body.min_rate ?? null,
+        offered_chain: validated.offered_chain,
+        offered_symbol: validated.offered_symbol,
+        offered_amount: validated.offered_amount,
+        wanted_chain: validated.wanted_chain,
+        wanted_symbol: validated.wanted_symbol,
+        wanted_amount: validated.wanted_amount,
+        min_rate: validated.min_rate ?? null,
         status: "active",
         expires_at: new Date(Date.now() + 3600_000).toISOString(),
         reputation_tier: tier.name,
@@ -141,7 +146,7 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
         selected_quote_id: null,
       });
 
-      fastify.log.info(`Bazaar: ${tier.emoji} [${tier.name}] ${agentAddress.slice(0,8)} broadcasts ${body.offered!.symbol} → ${body.wanted!.symbol}`);
+      fastify.log.info(`Bazaar: ${tier.emoji} [${tier.name}] ${agentAddress.slice(0,8)} broadcasts ${validated.offered_symbol} → ${validated.wanted_symbol}`);
 
       return reply.status(201).send(intentRowToObject(newIntent));
     }
@@ -292,22 +297,27 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
     "/api/v1/bazaar/quote",
     { preHandler: requirePayment({ amount: "0.002", service: "bazaar_quote" }) },
     async (request, reply) => {
-      const body = request.body as { intent_id: string; rate: number };
-
-      if (!body.intent_id || !body.rate) {
-        return reply.status(400).send({ error: "intent_id and rate required" });
+      let validated;
+      try {
+        validated = validateOrThrow(bazaarQuoteSchema, request.body ?? {});
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          return reply.status(400).send({ error: "Validation failed", details: err.message });
+        }
+        throw err;
       }
 
-      const intent = await getIntent(body.intent_id);
+      const intent = await getIntent(validated.intent_id);
       if (!intent) return reply.status(404).send({ error: "Intent not found" });
 
       const quoteId = `qut-${randomUUID().slice(0, 8)}`;
+      const validUntil = new Date(Date.now() + validated.valid_for_minutes * 60_000).toISOString();
       const newQuote = await createQuote({
         id: quoteId,
-        intent_id: body.intent_id,
+        intent_id: validated.intent_id,
         from_agent: request.payerAddress ?? "GUNKNOWN",
-        rate: body.rate,
-        valid_until: new Date(Date.now() + 300_000).toISOString(),
+        rate: validated.rate,
+        valid_until: validUntil,
       });
 
       return reply.status(201).send({
@@ -321,31 +331,35 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
     "/api/v1/bazaar/accept",
     { preHandler: requirePayment({ amount: "0.005", service: "bazaar_accept" }) },
     async (request, reply) => {
-      const body = request.body as { intent_id: string; quote_id?: string; secret_hash?: string; amount_usdc?: number };
-
-      if (!body.intent_id) {
-        return reply.status(400).send({ error: "intent_id is required" });
+      let validated;
+      try {
+        validated = validateOrThrow(bazaarAcceptSchema, request.body ?? {});
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          return reply.status(400).send({ error: "Validation failed", details: err.message });
+        }
+        throw err;
       }
 
-      const intent = await getIntent(body.intent_id);
+      const intent = await getIntent(validated.intent_id);
       if (!intent) return reply.status(404).send({ error: "Intent not found" });
       if (intent.status !== "active") return reply.status(409).send({ error: `Intent is already ${intent.status}` });
 
-      const secretHash = body.secret_hash
+      const secretHash = validated.secret_hash
         ?? createHash("sha256").update(randomBytes(32)).digest("hex");
 
-      const quotes = await getQuotesForIntent(body.intent_id);
-      const quote = body.quote_id
-        ? quotes.find(q => q.id === body.quote_id)
+      const quotes = await getQuotesForIntent(validated.intent_id);
+      const quote = validated.quote_id
+        ? quotes.find(q => q.id === validated.quote_id)
         : quotes[0];
 
-      const amountUsdc = body.amount_usdc
+      const amountUsdc = validated.amount_usdc
         ?? parseFloat(intent.wanted_symbol === "USDC" ? intent.wanted_amount : "28.57");
 
-      fastify.log.info(`Bazaar: Locking Stellar side for intent ${body.intent_id}...`);
+      fastify.log.info(`Bazaar: Locking Stellar side for intent ${validated.intent_id}...`);
       const lock = await lockAtomicSwap({ amountUsdc, secretHash, timeoutMinutes: 60 });
 
-      await updateIntent(body.intent_id, {
+      await updateIntent(validated.intent_id, {
         status: "negotiating",
         secret_hash: secretHash,
         selected_quote_id: quote?.id ?? null,
@@ -359,7 +373,7 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
         status: "negotiating",
         message: "Stellar side anchored on-chain. Cross-chain intent coordinated.",
         handshake: {
-          intent_id: body.intent_id,
+          intent_id: validated.intent_id,
           quote_id: quote?.id ?? "auto",
           market_maker: quote?.from_agent ?? "market-maker-agent",
           secret_hash: secretHash,

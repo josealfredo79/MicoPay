@@ -257,3 +257,214 @@ export function getTopProviders(
 }
 
 export { PROVIDERS };
+
+export interface ScoredMerchant {
+  id: string;
+  stellar_address: string;
+  name: string;
+  type: string;
+  address: string;
+  lat: number;
+  lng: number;
+  available_mxn: number;
+  max_trade_mxn: number;
+  min_trade_mxn: number;
+  tier: ProviderTier;
+  reputation: number;
+  completion_rate: number;
+  trades_completed: number;
+  avg_time_minutes: number;
+  online: boolean;
+  distance_km: number;
+  score: number;
+}
+
+let dbAvailable = false;
+
+async function checkDbAvailability(): Promise<boolean> {
+  if (dbAvailable) return true;
+  try {
+    const { query } = await import('../db/schema.js');
+    await query('SELECT 1');
+    dbAvailable = true;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getScoredMerchantsFromDB(
+  lat: number,
+  lng: number,
+  amount: number,
+  limit: number = 5
+): Promise<ScoredMerchant[]> {
+  const isDbAvailable = await checkDbAvailability();
+  if (!isDbAvailable) {
+    console.warn('[P2P Matching] DB unavailable, using mock data');
+    const mock = getTopProviders({ lat, lng, amount }, limit);
+    return mock.map(p => ({
+      ...p,
+      distance_km: p.distance_km,
+    }));
+  }
+
+  try {
+    const { getMany, query } = await import('../db/schema.js');
+
+    const rows = await getMany<{
+      id: string;
+      stellar_address: string;
+      name: string;
+      type: string;
+      address: string;
+      lat: string;
+      lng: string;
+      available_mxn: string;
+      max_trade_mxn: string;
+      min_trade_mxn: string;
+      tier: string;
+      completion_rate: string;
+      trades_completed: string;
+      avg_time_minutes: string;
+      online: boolean;
+      volume_usdc: string;
+      distance: string;
+    }>(`
+      SELECT *,
+        (6371 * acos(
+          LEAST(1.0, GREATEST(-1.0,
+            cos(radians($1)) * cos(radians(lat)) *
+            cos(radians(lng) - radians($2)) +
+            sin(radians($1)) * sin(radians(lat))
+          ))
+        )) AS distance
+      FROM p2p_merchants
+      WHERE online = TRUE
+        AND status IN ('active', 'verified')
+        AND available_mxn >= $3
+        AND max_trade_mxn >= $3
+        AND min_trade_mxn <= $3
+        AND lat IS NOT NULL
+        AND lng IS NOT NULL
+      HAVING (6371 * acos(
+        LEAST(1.0, GREATEST(-1.0,
+          cos(radians($1)) * cos(radians(lat)) *
+          cos(radians(lng) - radians($2)) +
+          sin(radians($1)) * sin(radians(lat))
+        ))
+      )) <= 50
+      ORDER BY distance ASC
+      LIMIT $4
+    `, [lat, lng, amount, limit]);
+
+    const scored: ScoredMerchant[] = rows.map(row => {
+      const tier = row.tier as ProviderTier;
+      const trades = parseInt(row.trades_completed, 10);
+      const volume = parseFloat(row.volume_usdc);
+      const distance = parseFloat(row.distance);
+
+      const reputation = reputationFromTrades(trades, tier);
+      const completionRate = parseFloat(row.completion_rate);
+      const tierBonus = TIER_WEIGHTS[tier];
+
+      const maxDistance = 10;
+      const normalizedDistance = Math.max(0, 1 - distance / maxDistance);
+
+      const score =
+        REPUTATION_WEIGHT * reputation +
+        COMPLETION_WEIGHT * completionRate +
+        DISTANCE_WEIGHT * normalizedDistance +
+        tierBonus * 0.1;
+
+      return {
+        id: row.id,
+        stellar_address: row.stellar_address,
+        name: row.name,
+        type: row.type,
+        address: row.address || '',
+        lat: parseFloat(row.lat),
+        lng: parseFloat(row.lng),
+        available_mxn: parseFloat(row.available_mxn),
+        max_trade_mxn: parseFloat(row.max_trade_mxn),
+        min_trade_mxn: parseFloat(row.min_trade_mxn),
+        tier,
+        reputation,
+        completion_rate: completionRate,
+        trades_completed: trades,
+        avg_time_minutes: parseInt(row.avg_time_minutes, 10),
+        online: row.online,
+        distance_km: parseFloat(distance.toFixed(2)),
+        score: Math.min(Math.max(score, 0), 1),
+      };
+    });
+
+    return scored.sort((a, b) => b.score - a.score);
+  } catch (error) {
+    console.error('[P2P Matching] DB query failed, falling back to mock:', error);
+    const mock = getTopProviders({ lat, lng, amount }, limit);
+    return mock.map(p => ({
+      ...p,
+      distance_km: p.distance_km,
+    }));
+  }
+}
+
+export async function getMerchantFromDB(stellarAddress: string): Promise<ScoredMerchant | null> {
+  const isDbAvailable = await checkDbAvailability();
+  if (!isDbAvailable) {
+    return MERCHANTS_DATA.find(m => m.stellar_address === stellarAddress) as ScoredMerchant | null;
+  }
+
+  try {
+    const { getOne } = await import('../db/schema.js');
+
+    const row = await getOne<{
+      id: string;
+      stellar_address: string;
+      name: string;
+      type: string;
+      address: string;
+      lat: string;
+      lng: string;
+      available_mxn: string;
+      max_trade_mxn: string;
+      min_trade_mxn: string;
+      tier: string;
+      completion_rate: string;
+      trades_completed: string;
+      avg_time_minutes: string;
+      online: boolean;
+      volume_usdc: string;
+    }>('SELECT * FROM p2p_merchants WHERE stellar_address = $1', [stellarAddress]);
+
+    if (!row) return null;
+
+    const tier = row.tier as ProviderTier;
+    const trades = parseInt(row.trades_completed, 10);
+
+    return {
+      id: row.id,
+      stellar_address: row.stellar_address,
+      name: row.name,
+      type: row.type,
+      address: row.address || '',
+      lat: parseFloat(row.lat),
+      lng: parseFloat(row.lng),
+      available_mxn: parseFloat(row.available_mxn),
+      max_trade_mxn: parseFloat(row.max_trade_mxn),
+      min_trade_mxn: parseFloat(row.min_trade_mxn),
+      tier,
+      reputation: reputationFromTrades(trades, tier),
+      completion_rate: parseFloat(row.completion_rate),
+      trades_completed: trades,
+      avg_time_minutes: parseInt(row.avg_time_minutes, 10),
+      online: row.online,
+      distance_km: 0,
+      score: 0,
+    };
+  } catch (error) {
+    console.error('[P2P Matching] DB lookup failed, falling back to mock:', error);
+    return MERCHANTS_DATA.find(m => m.stellar_address === stellarAddress) as ScoredMerchant | null;
+  }
+}

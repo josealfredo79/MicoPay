@@ -3,7 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "types": ["node"],
+    "types": ["node", "@fastify/websocket"],
     "paths": {
       "@micopay/types": ["../../packages/types/src"],
       "@micopay/sdk": ["../../packages/sdk/src"]

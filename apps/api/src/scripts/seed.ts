@@ -2,6 +2,7 @@
 import { query } from "../db/schema.js";
 import { initX402Tables } from "../db/x402.js";
 import { initBazaarTables, seedAgentHistories, seedIntents } from "../db/bazaar.js";
+import { ensureTable, listMerchants } from "../services/p2p-registry.js";
 
 const LOGO = `
 ╔══════════════════════════════════════════════════════╗
@@ -180,6 +181,143 @@ async function seedMerchants() {
   return merchants.length;
 }
 
+async function seedP2PMerchants() {
+  console.log("\n📍 Seeding P2P merchants (p2p_merchants table)...");
+  
+  await ensureTable();
+  
+  const p2pMerchants = [
+    {
+      id: "P2PM001",
+      stellar_address: "GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGKUJI5KOOJ9TXWNTBBS2JN",
+      name: "Farmacia Guadalupe",
+      type: "farmacia",
+      address: "Orizaba 45, Col. Roma Norte, CDMX",
+      lat: 19.4195,
+      lng: -99.1627,
+      available_mxn: 5000,
+      max_trade_mxn: 3000,
+      min_trade_mxn: 100,
+      tier: "maestro",
+      status: "verified",
+      verified: true,
+      completion_rate: 0.98,
+      trades_completed: 312,
+      trades_cancelled: 6,
+      volume_usdc: 241500,
+      avg_time_minutes: 4,
+      online: true,
+    },
+    {
+      id: "P2PM002",
+      stellar_address: "GDAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A",
+      name: "Tienda Don Pepe",
+      type: "tienda",
+      address: "Av. Álvaro Obregón 120, Col. Roma Norte, CDMX",
+      lat: 19.4165,
+      lng: -99.1580,
+      available_mxn: 3000,
+      max_trade_mxn: 2000,
+      min_trade_mxn: 200,
+      tier: "experto",
+      status: "active",
+      verified: true,
+      completion_rate: 0.93,
+      trades_completed: 156,
+      trades_cancelled: 12,
+      volume_usdc: 52300,
+      avg_time_minutes: 7,
+      online: true,
+    },
+    {
+      id: "P2PM003",
+      stellar_address: "GCF3CJXADZKIODEGZHTBQKPAGMO5KYVW6SLJ3J5GBQZDIFHGT7ZZQMFB",
+      name: "Papelería La Central",
+      type: "papeleria",
+      address: "Col. Condesa, CDMX",
+      lat: 19.4110,
+      lng: -99.1740,
+      available_mxn: 2000,
+      max_trade_mxn: 1500,
+      min_trade_mxn: 100,
+      tier: "activo",
+      status: "active",
+      verified: true,
+      completion_rate: 0.88,
+      trades_completed: 45,
+      trades_cancelled: 6,
+      volume_usdc: 12800,
+      avg_time_minutes: 5,
+      online: true,
+    },
+    {
+      id: "P2PM004",
+      stellar_address: "GDTEZWGQB7V2CLS6GVKWM4B3F5QMT6BJ2UJH7D3O5XFJJJENOTK3YUD5",
+      name: "Consultorio Dr. Martínez",
+      type: "consultorio",
+      address: "Col. Del Valle, CDMX",
+      lat: 19.3960,
+      lng: -99.1755,
+      available_mxn: 8000,
+      max_trade_mxn: 5000,
+      min_trade_mxn: 500,
+      tier: "espora",
+      status: "active",
+      verified: false,
+      completion_rate: 0.75,
+      trades_completed: 12,
+      trades_cancelled: 4,
+      volume_usdc: 3200,
+      avg_time_minutes: 10,
+      online: false,
+    },
+    {
+      id: "P2PM005",
+      stellar_address: "GAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4B",
+      name: "Abarrotes El Güero",
+      type: "abarrotes",
+      address: "Insurgentes Sur 2500, CDMX",
+      lat: 19.4030,
+      lng: -99.1680,
+      available_mxn: 1500,
+      max_trade_mxn: 1000,
+      min_trade_mxn: 50,
+      tier: "activo",
+      status: "active",
+      verified: true,
+      completion_rate: 0.85,
+      trades_completed: 78,
+      trades_cancelled: 14,
+      volume_usdc: 18500,
+      avg_time_minutes: 6,
+      online: true,
+    },
+  ];
+
+  for (const m of p2pMerchants) {
+    await query(`
+      INSERT INTO p2p_merchants (
+        id, stellar_address, name, type, address, lat, lng,
+        available_mxn, max_trade_mxn, min_trade_mxn, tier, status, verified,
+        completion_rate, trades_completed, trades_cancelled, volume_usdc,
+        avg_time_minutes, online
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+      ON CONFLICT (id) DO UPDATE SET
+        available_mxn = EXCLUDED.available_mxn,
+        online = EXCLUDED.online,
+        updated_at = NOW()
+    `, [
+      m.id, m.stellar_address, m.name, m.type, m.address,
+      m.lat, m.lng, m.available_mxn, m.max_trade_mxn, m.min_trade_mxn,
+      m.tier, m.status, m.verified, m.completion_rate, m.trades_completed,
+      m.trades_cancelled, m.volume_usdc, m.avg_time_minutes, m.online
+    ]);
+  }
+
+  console.log(`   ✅ ${p2pMerchants.length} P2P merchants seeded`);
+  return p2pMerchants.length;
+}
+
 async function seedX402Payments() {
   console.log("\n💰 Seeding sample x402 payments...");
 
@@ -247,7 +385,7 @@ async function seedSwapHistory() {
 }
 
 async function getStats() {
-  const tables = ["merchants", "bazaar_intents", "bazaar_quotes", "agent_history", "x402_payments", "swap_history"];
+  const tables = ["merchants", "p2p_merchants", "bazaar_intents", "bazaar_quotes", "agent_history", "x402_payments", "swap_history"];
   const stats: Record<string, number> = {};
 
   for (const table of tables) {
@@ -271,6 +409,7 @@ async function main() {
     console.log("\n🚀 Starting database seed...");
 
     const merchantsCount = await seedMerchants();
+    await seedP2PMerchants();
     await seedAgentHistories();
     await seedIntents();
     await seedX402Payments();
@@ -282,6 +421,7 @@ async function main() {
     console.log("║                    SEED COMPLETE                     ║");
     console.log("╠══════════════════════════════════════════════════════╣");
     console.log(`║  Merchants:        ${String(stats.merchants).padStart(32)}║`);
+    console.log(`║  P2P Merchants:    ${String(stats.p2p_merchants).padStart(32)}║`);
     console.log(`║  Bazaar Intents:   ${String(stats.bazaar_intents).padStart(32)}║`);
     console.log(`║  Agent History:   ${String(stats.agent_history).padStart(32)}║`);
     console.log(`║  X402 Payments:   ${String(stats.x402_payments).padStart(32)}║`);

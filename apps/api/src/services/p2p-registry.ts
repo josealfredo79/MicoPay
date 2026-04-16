@@ -125,7 +125,7 @@ async function initMerchantsTable(): Promise<void> {
 }
 
 let tableInitialized = false;
-async function ensureTable(): Promise<void> {
+export async function ensureTable(): Promise<void> {
   if (!tableInitialized) {
     await initMerchantsTable();
     tableInitialized = true;

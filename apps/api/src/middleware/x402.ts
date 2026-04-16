@@ -1,6 +1,7 @@
 import type { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { Networks, Transaction, Keypair } from "@stellar/stellar-sdk";
 import { isPaymentUsed, markPaymentUsed, initX402Tables, cleanupExpiredPayments } from "../db/x402.js";
+import { rateLimitByService, rateLimitStore } from "./rate-limit.js";
 
 let x402Initialized = false;
 
@@ -46,10 +47,39 @@ export interface X402Config {
  *   fastify.get('/endpoint', { preHandler: requirePayment({ amount: '0.001', service: 'swap_search' }) }, handler)
  */
 export function requirePayment(config: X402Config) {
+  const serviceLimit = rateLimitByService[config.service] ?? { windowMs: 60000, maxRequests: 10 };
+  
   return async function x402PreHandler(
     request: FastifyRequest,
     reply: FastifyReply
   ): Promise<void> {
+    const ip = request.ip ?? request.headers['x-forwarded-for'] ?? 'unknown';
+    const key = `${ip}:${config.service}`;
+    
+    const now = Date.now();
+    const entry = rateLimitStore.get(key);
+    
+    if (entry && entry.resetAt > now) {
+      entry.count++;
+    } else {
+      rateLimitStore.set(key, { count: 1, resetAt: now + serviceLimit.windowMs });
+    }
+    
+    const currentEntry = rateLimitStore.get(key)!;
+    
+    reply.header('X-RateLimit-Limit', serviceLimit.maxRequests);
+    reply.header('X-RateLimit-Remaining', Math.max(0, serviceLimit.maxRequests - currentEntry.count));
+    reply.header('X-RateLimit-Reset', Math.ceil(currentEntry.resetAt / 1000));
+    
+    if (currentEntry.count > serviceLimit.maxRequests) {
+      reply.status(429).send({
+        error: 'Too Many Requests',
+        service: config.service,
+        retry_after_seconds: Math.ceil((currentEntry.resetAt - now) / 1000),
+      });
+      return;
+    }
+
     const paymentHeader = request.headers["x-payment"] as string | undefined;
 
     if (!paymentHeader) {

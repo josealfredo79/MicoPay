@@ -2,7 +2,9 @@ import type { FastifyInstance } from "fastify";
 import { requirePayment } from "../middleware/x402.js";
 import { randomUUID, randomBytes, createHash } from "crypto";
 import * as StellarSdk from "@stellar/stellar-sdk";
-import { findNearbyProviders, getTopProviders, MERCHANTS_DATA } from "../services/p2p.js";
+import { findNearbyProviders, getTopProviders, getScoredMerchantsFromDB, getMerchantFromDB, MERCHANTS_DATA } from "../services/p2p.js";
+import { getUsdcMxnRate, getCachedRateInfo } from "../services/exchange-rate.js";
+import { validateOrThrow, cashAgentsQuerySchema, cashRequestSchema, ValidationError } from "../schemas/validation.js";
 
 const RPC_URL  = process.env.STELLAR_RPC_URL ?? "https://soroban-testnet.stellar.org";
 const NET      = StellarSdk.Networks.TESTNET;
@@ -83,7 +85,6 @@ export const MERCHANTS = MERCHANTS_DATA;
 // In production: https://app.micopay.xyz
 const CLAIM_BASE_URL = process.env.CLAIM_BASE_URL ?? "http://localhost:5181";
 
-// In-memory store for cash requests (roadmap: connect to MicoPay P2P backend)
 const cashRequests = new Map<string, {
   request_id: string;
   merchant_address: string;
@@ -111,17 +112,6 @@ export function distanceKm(lat1: number, lng1: number, lat2: number, lng2: numbe
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Live USDC/MXN rate from Horizon (with fallback)
-let cachedRate: { rate: number; ts: number } | null = null;
-
-async function getUsdcMxnRate(): Promise<number> {
-  if (cachedRate && Date.now() - cachedRate.ts < 60_000) return cachedRate.rate;
-  // Fixed demo rate: 1 USDC ≈ 17.5 MXN (realistic mid-2026 rate for testnet demo)
-  // In production: use live oracle (Chainlink, CoinGecko, or Etherfuse feed)
-  cachedRate = { rate: 17.5, ts: Date.now() };
-  return cachedRate.rate;
-}
-
 export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
   /**
    * GET /api/v1/cash/agents
@@ -140,17 +130,50 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
     "/api/v1/cash/agents",
     { preHandler: requirePayment({ amount: "0.001", service: "cash_agents" }) },
     async (request, reply) => {
-      const query = request.query as Record<string, string>;
-      const lat = parseFloat(query.lat ?? "19.4195");
-      const lng = parseFloat(query.lng ?? "-99.1627");
-      const amount = parseInt(query.amount ?? "500", 10);
-      const limit = Math.min(parseInt(query.limit ?? "5", 10), 10);
-      const radiusKm = Math.min(parseInt(query.radius ?? "50", 10), 100);
+      let validated;
+      try {
+        validated = validateOrThrow(cashAgentsQuerySchema, request.query);
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          return reply.status(400).send({ error: "Validation failed", details: err.message });
+        }
+        throw err;
+      }
 
+      const { lat, lng, amount, limit, radius: radiusKm } = validated;
       const rate = await getUsdcMxnRate();
 
       let results;
+      let matchingEngine = "mock-v1";
+      
       try {
+        const dbMerchants = await getScoredMerchantsFromDB(lat, lng, amount, limit);
+        if (dbMerchants.length > 0) {
+          results = dbMerchants.map((p) => ({
+            id: p.id,
+            stellar_address: p.stellar_address,
+            name: p.name,
+            type: p.type,
+            address: p.address,
+            distance_km: p.distance_km,
+            available_mxn: p.available_mxn,
+            max_trade_mxn: p.max_trade_mxn,
+            min_trade_mxn: p.min_trade_mxn,
+            tier: p.tier,
+            reputation: p.reputation,
+            completion_rate: p.completion_rate,
+            trades_completed: p.trades_completed,
+            avg_time_minutes: p.avg_time_minutes,
+            online: p.online,
+            score: p.score,
+            usdc_rate: parseFloat((1 / rate).toFixed(6)),
+            amount_usdc_needed: parseFloat((amount / rate).toFixed(4)),
+          }));
+          matchingEngine = "p2p-v2";
+        } else {
+          throw new Error("No DB results");
+        }
+      } catch {
         const topProviders = getTopProviders({ lat, lng, amount }, limit);
         results = topProviders.map((p) => ({
           id: p.id,
@@ -172,27 +195,6 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
           usdc_rate: parseFloat((1 / rate).toFixed(6)),
           amount_usdc_needed: parseFloat((amount / rate).toFixed(4)),
         }));
-      } catch {
-        const nearby = findNearbyProviders(lat, lng, radiusKm, amount);
-        results = nearby.slice(0, limit).map((m) => ({
-          id: m.id,
-          stellar_address: m.stellar_address,
-          name: m.name,
-          type: m.type,
-          address: m.address,
-          distance_km: parseFloat(distanceKm(lat, lng, m.lat, m.lng).toFixed(2)),
-          available_mxn: m.available_mxn,
-          max_trade_mxn: m.max_trade_mxn,
-          min_trade_mxn: m.min_trade_mxn,
-          tier: m.tier,
-          reputation: m.reputation,
-          completion_rate: m.completion_rate,
-          trades_completed: m.trades_completed,
-          avg_time_minutes: m.avg_time_minutes,
-          online: m.online,
-          usdc_rate: parseFloat((1 / rate).toFixed(6)),
-          amount_usdc_needed: parseFloat((amount / rate).toFixed(4)),
-        }));
       }
 
       return reply.send({
@@ -202,7 +204,7 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
         usdc_mxn_rate: rate,
         network: process.env.STELLAR_NETWORK ?? "TESTNET",
         note: "Merchants from MicoPay P2P network with P2P matching engine. Rates from Stellar Horizon testnet.",
-        matching_engine: "p2p-v1",
+        matching_engine: matchingEngine,
       });
     }
   );
@@ -224,24 +226,32 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
     "/api/v1/cash/request",
     { preHandler: requirePayment({ amount: "0.01", service: "cash_request" }) },
     async (request, reply) => {
-      const body = request.body as {
-        merchant_address?: string;
-        amount_mxn?: number;
-        user_lat?: number;
-        user_lng?: number;
-      } | undefined;
-
-      const merchantAddress = body?.merchant_address;
-      const amountMxn = body?.amount_mxn ?? 500;
-
-      if (!merchantAddress) {
-        return reply.status(400).send({ error: "merchant_address is required" });
-      }
-      if (amountMxn < 50 || amountMxn > 5000) {
-        return reply.status(400).send({ error: "amount_mxn must be between 50 and 5000" });
+      let validated;
+      try {
+        validated = validateOrThrow(cashRequestSchema, request.body ?? {});
+      } catch (err) {
+        if (err instanceof ValidationError) {
+          return reply.status(400).send({ error: "Validation failed", details: err.message });
+        }
+        throw err;
       }
 
-      const merchant = MERCHANTS.find((m) => m.stellar_address === merchantAddress);
+      const { merchant_address: merchantAddress, amount_mxn: amountMxn } = validated;
+
+      let merchant = await getMerchantFromDB(merchantAddress);
+      
+      if (!merchant) {
+        const fallback = MERCHANTS.find((m) => m.stellar_address === merchantAddress);
+        if (fallback) {
+          merchant = {
+            ...fallback,
+            distance_km: 0,
+            score: 0,
+            reputation: fallback.completion_rate,
+          };
+        }
+      }
+      
       if (!merchant) {
         return reply.status(404).send({ error: "Merchant not found in MicoPay network" });
       }
@@ -342,6 +352,23 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
       amount_usdc: req.amount_usdc,
       htlc_tx_hash: req.htlc_tx_hash,
       expires_at: req.expires_at,
+    });
+  });
+
+  /**
+   * GET /api/v1/cash/rate
+   * FREE — get current USDC/MXN exchange rate from oracle
+   */
+  fastify.get("/api/v1/cash/rate", async (request, reply) => {
+    const rate = await getUsdcMxnRate();
+    const info = getCachedRateInfo();
+
+    return reply.send({
+      pair: "USDC/MXN",
+      rate: parseFloat(rate.toFixed(4)),
+      source: info?.source ?? "coingecko",
+      age_seconds: info ? Math.round((Date.now() - info.age_ms) / 1000) : null,
+      timestamp: new Date().toISOString(),
     });
   });
 }
