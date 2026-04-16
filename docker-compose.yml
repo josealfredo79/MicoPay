@@ -5,6 +5,8 @@ services:
     build:
       context: ./apps/api
       dockerfile: Dockerfile
+      args:
+        - NODE_ENV=production
     ports:
       - "3000:3000"
     environment:
@@ -12,9 +14,9 @@ services:
       - PORT=3000
       - DATABASE_URL=postgresql://micopay:micopay_secret@postgres:5432/micopay_db
       - STELLAR_RPC_URL=${STELLAR_RPC_URL:-https://soroban-testnet.stellar.org}
-      - STELLAR_NETWORK=TESTNET
+      - STELLAR_NETWORK=${STELLAR_NETWORK:-TESTNET}
       - ESCROW_CONTRACT_ID=${ESCROW_CONTRACT_ID:-CBQINHLR3M7NZAPQY7EJ3TWOE22R57LMFDVEMOK3C3X7ZIBFWHVQQP3A}
-      - PLATFORM_SECRET_KEY=${PLATFORM_SECRET_KEY}
+      - PLATFORM_SECRET_KEY=${PLATFORM_SECRET_KEY:-}
       - PLATFORM_STELLAR_ADDRESS=${PLATFORM_STELLAR_ADDRESS:-GDKKW2WSMQWZ63PIZBKDDBAAOBG5FP3TUHRYQ4U5RBKTFNESL5K5BJJK}
       - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
       - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
@@ -24,7 +26,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
