@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>MicoPay - Mini App</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { 
+      background: var(--tg-theme-bg-color, #17212b); 
+      color: var(--tg-theme-text-color, #ffffff);
+      margin: 0;
+      padding: 0;
+    }
+    .btn-primary {
+      background: var(--tg-theme-button-color, #2ed573);
+      color: var(--tg-theme-button-text-color, #17212b);
+    }
+    .card {
+      background: var(--tg-theme-secondary-bg-color, #242f3d);
+      border: 1px solid var(--tg-theme-bg-color, #17212b);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  
+  <!-- Header -->
+  <div class="bg-gradient-to-r from-green-600 to-green-500 p-6 text-white">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold">MicoPay</h1>
+        <p class="text-green-100 text-sm">Cash Exchange P2P</p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-green-200">Testnet</p>
+        <p class="text-xs text-green-200" id="user-info">Conectando...</p>
+      </div>
+    </div>
+  </div>
+
+  <main class="p-4 space-y-4 max-w-lg mx-auto">
+    
+    <!-- Rate Card -->
+    <div class="card rounded-2xl p-4">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-gray-400 text-sm">Tasa USDC/MXN</span>
+        <span class="text-xs px-2 py-1 rounded bg-green-900 text-green-400">LIVE</span>
+      </div>
+      <div class="text-3xl font-bold text-green-400" id="rate">$17.50</div>
+      <p class="text-gray-400 text-sm mt-1">1 USDC = $17.50 MXN</p>
+    </div>
+
+    <!-- Amount Selection -->
+    <div class="card rounded-2xl p-4">
+      <h3 class="font-bold mb-3">Cantidad a recibir</h3>
+      <div class="grid grid-cols-2 gap-2">
+        <button onclick="selectAmount(500)" class="amount-btn card rounded-xl p-3 text-center hover:bg-green-900 transition">
+          <span class="text-xl font-bold">$500</span>
+          <span class="text-xs text-gray-400 block">28.57 USDC</span>
+        </button>
+        <button onclick="selectAmount(1000)" class="amount-btn card rounded-xl p-3 text-center hover:bg-green-900 transition">
+          <span class="text-xl font-bold">$1,000</span>
+          <span class="text-xs text-gray-400 block">57.14 USDC</span>
+        </button>
+        <button onclick="selectAmount(2000)" class="amount-btn card rounded-xl p-3 text-center hover:bg-green-900 transition">
+          <span class="text-xl font-bold">$2,000</span>
+          <span class="text-xs text-gray-400 block">114.29 USDC</span>
+        </button>
+        <button onclick="selectAmount(5000)" class="amount-btn card rounded-xl p-3 text-center hover:bg-green-900 transition">
+          <span class="text-xl font-bold">$5,000</span>
+          <span class="text-xs text-gray-400 block">285.71 USDC</span>
+        </button>
+      </div>
+      <div class="mt-3">
+        <input type="number" id="custom-amount" placeholder="Otra cantidad..." 
+               class="w-full bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500"
+               onchange="selectAmount(this.value)">
+      </div>
+    </div>
+
+    <!-- Selected Amount -->
+    <div class="card rounded-2xl p-4" id="summary-card" style="display: none;">
+      <h3 class="font-bold mb-3">Resumen</h3>
+      <div class="space-y-2 text-sm">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Recibiras</span>
+          <span class="font-bold text-xl" id="summary-mxn">$0 MXN</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Pagas</span>
+          <span id="summary-usdc">0 USDC</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Agente</span>
+          <span id="summary-agent">Farmacia Guadalupe</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Comision</span>
+          <span class="text-green-400">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Button -->
+    <button onclick="confirmPayment()" id="confirm-btn" class="btn-primary w-full py-4 rounded-xl font-bold text-lg" style="display: none;">
+      Confirmar Pago
+    </button>
+
+    <!-- Agents List -->
+    <div class="card rounded-2xl p-4">
+      <h3 class="font-bold mb-3">Agentes Cercanos</h3>
+      <div class="space-y-3" id="agents-list">
+        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-green-500"></span>
+            <div>
+              <p class="font-bold">Farmacia Guadalupe</p>
+              <p class="text-xs text-gray-400">Roma Norte, CDMX • 0.5 km</p>
+            </div>
+          </div>
+          <span class="text-green-400 font-bold">$5,000</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-green-500"></span>
+            <div>
+              <p class="font-bold">Tienda Don Pepe</p>
+              <p class="text-xs text-gray-400">Condesa, CDMX • 1.2 km</p>
+            </div>
+          </div>
+          <span class="text-green-400 font-bold">$3,000</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-gray-800 rounded-xl">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full bg-red-500"></span>
+            <div>
+              <p class="font-bold">Papeleria Central</p>
+              <p class="text-xs text-gray-400">Del Valle, CDMX • 2.1 km</p>
+            </div>
+          </div>
+          <span class="text-gray-400 font-bold">$2,000</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4" style="display: none;">
+      <div class="bg-gray-800 rounded-2xl p-6 max-w-sm w-full text-center">
+        <div class="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+          <span class="text-4xl">✅</span>
+        </div>
+        <h2 class="text-2xl font-bold mb-2">Pago Confirmado!</h2>
+        <p class="text-gray-400 mb-4">Tu codigo de confirmacion:</p>
+        <div class="bg-gray-900 rounded-lg p-3 mb-4">
+          <span class="text-green-400 font-mono font-bold text-xl" id="confirm-code">MCO-12345678</span>
+        </div>
+        <p class="text-sm text-gray-400 mb-4">Presenta este codigo al agente para recibir tu efectivo</p>
+        <button onclick="closeModal()" class="btn-primary w-full py-3 rounded-xl font-bold">
+          Entendido
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    // Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    let selectedAmount = 0;
+    const RATE = 17.5;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      if (tg) {
+        tg.ready();
+        tg.expand();
+        
+        // Show user info
+        if (tg.initDataUnsafe?.user) {
+          document.getElementById('user-info').textContent = tg.initDataUnsafe.user.first_name;
+        }
+      }
+      
+      // Fetch live rate
+      fetchRate();
+    });
+
+    async function fetchRate() {
+      try {
+        const res = await fetch('http://localhost:3000/defi/cetes/rate');
+        const data = await res.json();
+        const rate = (data.cesPriceMxn * data.xlmPerUsdc).toFixed(2);
+        document.getElementById('rate').textContent = '$' + rate;
+        document.querySelector('.text-gray-400.text-sm.mt-1').textContent = '1 USDC = $' + rate + ' MXN';
+      } catch (e) {
+        console.log('Using simulated rate');
+      }
+    }
+
+    function selectAmount(amount) {
+      amount = parseInt(amount) || 0;
+      if (amount <= 0) return;
+      
+      selectedAmount = amount;
+      const usdc = (amount / RATE).toFixed(2);
+      
+      // Update summary
+      document.getElementById('summary-mxn').textContent = '$' + amount.toLocaleString() + ' MXN';
+      document.getElementById('summary-usdc').textContent = usdc + ' USDC';
+      
+      // Show summary and button
+      document.getElementById('summary-card').style.display = 'block';
+      document.getElementById('confirm-btn').style.display = 'block';
+      
+      // Highlight selected
+      document.querySelectorAll('.amount-btn').forEach(btn => {
+        btn.classList.remove('ring-2', 'ring-green-500');
+      });
+    }
+
+    function confirmPayment() {
+      if (selectedAmount <= 0) return;
+      
+      // Generate code
+      const code = 'MCO-' + Date.now().toString().slice(-8);
+      document.getElementById('confirm-code').textContent = code;
+      document.getElementById('success-modal').style.display = 'flex';
+      
+      // Haptic feedback
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.impactOccurred('medium');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('success-modal').style.display = 'none';
+      
+      // Reset
+      selectedAmount = 0;
+      document.getElementById('summary-card').style.display = 'none';
+      document.getElementById('confirm-btn').style.display = 'none';
+      document.getElementById('custom-amount').value = '';
+      
+      if (tg?.HapticFeedback) {
+        tg.HapticFeedback.notificationOccurred('success');
+      }
+    }
+  </script>
+</body>
+</html>

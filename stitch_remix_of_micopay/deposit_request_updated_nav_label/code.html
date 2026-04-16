@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MicoPay - Depositar Efectivo</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary-container": "#008560",
+                "on-primary-fixed-variant": "#00513a",
+                "surface-container-highest": "#d2e5f1",
+                "on-primary-container": "#f5fff7",
+                "on-error": "#ffffff",
+                "on-surface-variant": "#3d4943",
+                "on-surface": "#0b1e26",
+                "on-primary-fixed": "#002115",
+                "on-error-container": "#93000a",
+                "on-background": "#0b1e26",
+                "surface-tint": "#006c4e",
+                "secondary-fixed-dim": "#bac9d3",
+                "secondary": "#526069",
+                "inverse-surface": "#21333c",
+                "surface-bright": "#f4faff",
+                "outline": "#6d7a73",
+                "secondary-fixed": "#d5e5ef",
+                "primary": "#00694c",
+                "on-secondary-fixed": "#0f1d25",
+                "surface-variant": "#d2e5f1",
+                "inverse-on-surface": "#e1f4ff",
+                "surface-container-high": "#d7ebf7",
+                "surface": "#f4faff",
+                "primary-fixed-dim": "#68dbae",
+                "on-primary": "#ffffff",
+                "on-secondary": "#ffffff",
+                "inverse-primary": "#68dbae",
+                "tertiary-fixed-dim": "#6edab4",
+                "secondary-container": "#d5e5ef",
+                "error-container": "#ffdad6",
+                "error": "#ba1a1a",
+                "on-secondary-fixed-variant": "#3b4951",
+                "surface-container": "#ddf1fd",
+                "on-tertiary-fixed-variant": "#00513d",
+                "on-tertiary": "#ffffff",
+                "tertiary-container": "#008565",
+                "tertiary": "#00694f",
+                "surface-container-low": "#e7f6ff",
+                "on-tertiary-fixed": "#002117",
+                "surface-container-lowest": "#ffffff",
+                "outline-variant": "#bccac1",
+                "tertiary-fixed": "#8af7cf",
+                "on-tertiary-container": "#f5fff8",
+                "surface-dim": "#c9dde9",
+                "on-secondary-container": "#586670",
+                "background": "#f4faff",
+                "primary-fixed": "#86f8c9"
+              },
+              fontFamily: {
+                "headline": ["Plus Jakarta Sans"],
+                "body": ["Manrope"],
+                "label": ["Manrope"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+            background-color: #f4faff;
+        }
+        .header-headline {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .amount-input::placeholder {
+            color: #bccac1;
+        }
+        .gradient-primary {
+            background: linear-gradient(135deg, #00694c 0%, #008560 100%);
+        }
+        /* Anti-border rule: Defining boundaries through background shifts */
+        .card-shift {
+            background-color: #ffffff;
+        }
+        .canvas-bg {
+            background-color: #f4faff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="canvas-bg min-h-screen text-on-surface">
+<!-- TopAppBar - Shared Component Mapping -->
+<header class="w-full top-0 sticky bg-[#F4FAFF] dark:bg-[#0B1E26] shadow-[0px_32px_32px_rgba(11,30,38,0.04)] z-40 transition-colors duration-300">
+<div class="flex items-center justify-between px-6 py-4 w-full">
+<div class="flex items-center gap-4">
+<button class="text-[#00694C] dark:text-[#5DCAA5] hover:opacity-80 transition-opacity active:scale-95 duration-200" style="">
+<span class="material-symbols-outlined" data-icon="arrow_back" style="">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<span class="font-['Plus_Jakarta_Sans'] font-extrabold text-[#00694C] dark:text-[#5DCAA5] tracking-tight text-xs uppercase opacity-60" style="">MicoPay</span>
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-xl text-[#00694C] dark:text-[#5DCAA5]" style="">Depositar efectivo</h1>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto px-6 pt-12 pb-24">
+<!-- Content Section -->
+<div class="flex flex-col space-y-8">
+<!-- Amount Input Section -->
+<div class="space-y-6">
+<label class="font-['Manrope'] font-semibold text-[10px] tracking-wide uppercase text-on-surface-variant/70" style="">
+                    ¿CUÁNTO QUIERES DEPOSITAR?
+                </label>
+<div class="relative group">
+<div class="flex items-baseline space-x-2 border-b border-outline-variant/20 group-focus-within:border-primary transition-all duration-300 pb-2">
+<span class="text-4xl font-headline font-bold text-primary" style="">$</span>
+<input class="amount-input w-full bg-transparent border-none p-0 text-5xl font-headline font-extrabold text-on-surface focus:ring-0 placeholder:text-surface-container-highest" placeholder="500" type="number"/>
+<span class="text-xl font-headline font-bold text-on-surface-variant" style="">MXN</span>
+</div>
+</div>
+<!-- Balance Badge -->
+<div class="flex items-center space-x-2">
+<div class="px-3 py-1 bg-surface-container-low rounded-full">
+<p class="text-xs font-medium text-on-surface-variant" style="">
+                            Disponible: <span class="text-primary font-bold" style="">$1,240.00 MXN</span></p>
+</div>
+</div>
+</div>
+<!-- Contextual Card -->
+<div class="bg-surface-container-lowest p-6 rounded-xl shadow-[0_8px_24px_rgba(11,30,38,0.02)] space-y-4">
+<div class="flex items-start space-x-4">
+<div class="p-3 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary" data-icon="travel_explore" style="">travel_explore</span>
+</div>
+<div class="flex-1">
+<p class="text-on-surface font-medium leading-relaxed" style="">
+                            Buscaremos agentes cercanos que tengan saldo disponible para acreditarte.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Primary Action -->
+<div class="pt-8">
+<button class="w-full gradient-primary text-white h-[56px] rounded-xl font-headline font-bold text-lg shadow-lg shadow-primary/20 active:scale-95 transition-all duration-200 flex items-center justify-center space-x-2" style="">
+<span class="" style="">Buscar ofertas de depósito</span>
+<span class="material-symbols-outlined text-xl" data-icon="chevron_right" style="">chevron_right</span>
+</button>
+</div>
+</div>
+<!-- Decorative Organic Element (Asymmetry Principle) -->
+<div class="fixed -bottom-12 -right-12 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+</main>
+<!-- BottomNavBar - Shared Component Mapping (Inactive state for non-top-level pages, but rendered for shell consistency as per instructions) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 rounded-t-3xl shadow-[0_-4px_32px_rgba(11,30,38,0.04)]">
+<!-- Inicio (Active for shell consistency with Home) -->
+<a class="flex flex-col items-center justify-center rounded-2xl px-5 py-2 transition-all active:scale-90 duration-300 ease-out bg-[#1D9E75]/10 text-[#008560]" href="#" style="">
+<span class="material-symbols-outlined" data-icon="home" style='font-variation-settings: "FILL" 1;'>home</span>
+<span class="font-label font-medium text-[11px]" style="">Inicio</span>
+</a>
+<!-- Pagar -->
+<a class="flex flex-col items-center justify-center text-[#0B1E26] dark:text-slate-400 opacity-60 px-5 py-2 hover:opacity-100 transition-opacity" href="#" style="">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner" style="">qr_code_scanner</span>
+<span class="font-label font-medium text-[11px]" style="">Pagar</span>
+</a>
+<!-- Mercado -->
+<a class="flex flex-col items-center justify-center text-[#0B1E26] dark:text-slate-400 opacity-60 px-5 py-2 hover:opacity-100 transition-opacity" href="#" style="">
+<span class="material-symbols-outlined" data-icon="storefront" style="">storefront</span>
+<span class="font-label font-medium text-[11px]" style="">Mercado</span>
+</a>
+<!-- Perfil -->
+<a class="flex flex-col items-center justify-center text-[#0B1E26] dark:text-slate-400 opacity-60 px-5 py-2 hover:opacity-100 transition-opacity" href="#" style="">
+<span class="material-symbols-outlined" data-icon="person" style="">person</span>
+<span class="font-label font-medium text-[11px]" style="">Perfil</span>
+</a>
+</nav>
+</body></html>

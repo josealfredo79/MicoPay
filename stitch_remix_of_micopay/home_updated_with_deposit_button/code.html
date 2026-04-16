@@ -1,0 +1,194 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>micopay-cashout-01-home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "surface-dim": "#c9dde9",
+              "on-surface": "#0b1e26",
+              "on-background": "#0b1e26",
+              "on-secondary-fixed": "#0f1d25",
+              "surface-container-low": "#e7f6ff",
+              "inverse-primary": "#68dbae",
+              "surface-variant": "#d2e5f1",
+              "error-container": "#ffdad6",
+              "outline-variant": "#bccac1",
+              "on-secondary-fixed-variant": "#3b4951",
+              "on-tertiary-fixed": "#002117",
+              "secondary-container": "#d5e5ef",
+              "primary-fixed-dim": "#68dbae",
+              "on-tertiary": "#ffffff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#e1f4ff",
+              "on-primary-container": "#f5fff7",
+              "tertiary-container": "#008565",
+              "secondary-fixed": "#d5e5ef",
+              "primary-container": "#008560",
+              "on-tertiary-container": "#f5fff8",
+              "inverse-surface": "#21333c",
+              "surface-bright": "#f4faff",
+              "secondary": "#526069",
+              "surface-container": "#ddf1fd",
+              "on-surface-variant": "#3d4943",
+              "surface-container-highest": "#d2e5f1",
+              "tertiary": "#00694f",
+              "on-tertiary-fixed-variant": "#00513d",
+              "background": "#f4faff",
+              "tertiary-fixed": "#8af7cf",
+              "on-primary": "#ffffff",
+              "on-primary-fixed-variant": "#00513a",
+              "on-secondary-container": "#586670",
+              "surface-container-high": "#d7ebf7",
+              "secondary-fixed-dim": "#bac9d3",
+              "surface-tint": "#006c4e",
+              "surface-container-lowest": "#ffffff",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#6edab4",
+              "primary": "#00694c",
+              "primary-fixed": "#86f8c9",
+              "surface": "#f4faff",
+              "outline": "#6d7a73",
+              "on-primary-fixed": "#002115",
+              "on-error-container": "#93000a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-surface-dark {
+            background-color: #1A2830;
+        }
+        .text-accent {
+            color: #5DCAA5;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface-lowest text-on-surface font-body min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 backdrop-blur-md bg-white/80 dark:bg-slate-900/80">
+<div class="flex items-center gap-2">
+<!-- Node Symbol SVG Concept -->
+<svg fill="none" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<circle cx="7" cy="7" r="3" stroke="#1A2830" stroke-width="2"></circle>
+<circle cx="17" cy="17" r="3" stroke="#1D9E75" stroke-width="2"></circle>
+<path d="M10 10L14 14" stroke="#00694C" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+<div class="font-headline tracking-tight text-2xl">
+<span class="font-semibold text-[#1A2830]" style="">Mico</span><span class="font-normal text-[#1D9E75]" style="">Pay</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary p-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer" data-icon="notifications" style="">notifications</span>
+<div class="w-10 h-10 rounded-full border-2 border-primary-container overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Portrait of a smiling young man named Juan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB67y-i20YKZ74EdUyBhPSqynmndCKS-h3EA_TY5I4DqJOMVotSw1KNKnJkRorXphGGSC2O37IzK3Ne0ucqSrLTuM5yBABSXmcqkmRAyds2slhc0jFDuu8bya9fX1W0jjxuPpCDkellmiwXSghk0lbLSUG_ZS_wCQ2m2oeltlvvyv4kQarhZZ8l-AC3gUy-wtgF301WK7zIlo5utKmx_I6CTuAQ_zqkXyiN6Di4UFiRzq5ASwVi017MoYgq_LhBYMO_AEIf4ZAHp1Dh" style="">
+</div>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-20 px-6 pb-32">
+<!-- Saludo -->
+<section class="mb-8">
+<h1 class="font-headline font-extrabold text-3xl text-[#1A2830] leading-tight mb-1" style="">Hola, Juan 👋</h1>
+<p class="text-on-surface-variant font-medium opacity-70" style="">Domingo, 22 de Marzo</p>
+</section>
+<!-- Balance Card (The Signature Element) -->
+<div class="bg-surface-dark rounded-[18px] p-6 relative overflow-hidden mb-10 shadow-lg">
+<!-- Organic Node Watermark -->
+<div class="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
+<svg fill="none" height="180" viewBox="0 0 24 24" width="180" xmlns="http://www.w3.org/2000/svg">
+<circle cx="7" cy="7" r="3" stroke="#D4E4EC" stroke-width="1.5"></circle>
+<circle cx="17" cy="17" r="3" stroke="#D4E4EC" stroke-width="1.5"></circle>
+<path d="M10 10L14 14" stroke="#D4E4EC" stroke-width="1.5"></path>
+</svg>
+</div>
+<div class="flex justify-between items-start relative z-10 mb-6">
+<p class="text-[10px] font-bold tracking-[0.15em] text-[#D4E4EC]/60 uppercase" style="">SALDO MXN· STELLAR</p>
+<div class="flex items-center justify-center bg-white/10 rounded-full p-1">
+<span class="material-symbols-outlined text-white text-sm" data-icon="rocket_launch" style="">rocket_launch</span>
+</div>
+</div>
+<div class="relative z-10 mb-4">
+<h2 class="text-[32px] font-semibold text-[#D4E4EC] tracking-tight" style="">$1,240.00 MXN</h2>
+<div class="flex items-center gap-2 mt-1">
+<span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+<p class="text-accent text-sm font-medium" style="">Wallet conectada · Testnet</p>
+</div>
+</div>
+</div>
+<!-- Bento Style Feature Grid -->
+<div class="grid grid-cols-2 gap-4 mb-10">
+<div class="bg-surface-container-low rounded-2xl p-5 flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="account_balance_wallet" style="">account_balance_wallet</span>
+<div>
+<p class="font-headline font-bold text-[#1A2830]" style="">Mis activos</p>
+<p class="text-xs text-on-surface-variant" style="">Ver portafolio</p>
+</div>
+</div>
+<div class="bg-surface-container-low rounded-2xl p-5 flex flex-col justify-between aspect-square">
+<span class="material-symbols-outlined text-primary text-3xl" data-icon="swap_horiz" style="">swap_horiz</span>
+<div>
+<p class="font-headline font-bold text-[#1A2830]" style="">Actividad</p>
+<p class="text-xs text-on-surface-variant" style="">2 transacciones hoy</p>
+</div>
+</div>
+</div>
+<!-- Primary CTA Area -->
+<div class="flex flex-col items-center gap-4">
+<button class="w-full h-[56px] bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center gap-2" style="">
+<span class="material-symbols-outlined" data-icon="payments" style="">payments</span>
+                Convertir a efectivo
+            </button><button class="w-full h-[56px] bg-gradient-to-r from-[#1D9E75] to-[#14815F] text-white font-bold rounded-xl shadow-md active:scale-95 transition-all duration-200 flex items-center justify-center gap-2" style="">
+<span class="material-symbols-outlined" data-icon="add_circle" style="">add_circle</span>
+  Depositar efectivo
+</button>
+<p class="text-sm text-on-surface-variant font-medium opacity-60" style="">Encuentra a alguien cerca en minutos</p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 rounded-t-3xl shadow-[0_-4px_32px_rgba(11,30,38,0.04)]">
+<!-- Inicio (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#008560] text-white rounded-2xl px-5 py-2 transition-all active:scale-90 duration-300 ease-out" href="#" style="">
+<span class="material-symbols-outlined" data-icon="home" style="font-variation-settings: &quot;FILL&quot; 1;">home</span>
+<span class="font-label font-medium text-[11px]" style="">Inicio</span>
+</a>
+<!-- Pagar -->
+<a class="flex flex-col items-center justify-center text-[#0B1E26] dark:text-slate-400 opacity-60 px-5 py-2 hover:opacity-100 transition-opacity" href="#" style="">
+<span class="material-symbols-outlined" data-icon="qr_code_scanner" style="">qr_code_scanner</span>
+<span class="font-label font-medium text-[11px]" style="">Escanear</span>
+</a>
+<!-- Mercado -->
+<a class="flex flex-col items-center justify-center text-[#0B1E26] dark:text-slate-400 opacity-60 px-5 py-2 hover:opacity-100 transition-opacity" href="#" style="">
+<span class="material-symbols-outlined" data-icon="storefront" style="">storefront</span>
+<span class="font-label font-medium text-[11px]" style="">Mercado</span>
+</a>
+<!-- Perfil -->
+<a class="flex flex-col items-center justify-center text-[#0B1E26] dark:text-slate-400 opacity-60 px-5 py-2 hover:opacity-100 transition-opacity" href="#" style="">
+<span class="material-symbols-outlined" data-icon="person" style="">person</span>
+<span class="font-label font-medium text-[11px]" style="">Perfil</span>
+</a>
+</nav>
+</body></html>

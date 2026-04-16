@@ -1,0 +1,28 @@
+# Node.js
+node_modules/
+dist/
+npm-debug.log*
+
+# Rust
+target/
+**/*.rs.bk
+
+# Secretos y Config
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Gemini/Antigravity (Internal files)
+.gemini/
+.agents/
+.agent/
+_agents/
+_agent/
+brain/
+**/brain/
+task.md
+implementation_plan.md
+walkthrough.md

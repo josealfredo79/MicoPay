@@ -1,0 +1,170 @@
+<!DOCTYPE html><html class="light" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>MicoPay - Cash Out Éxito</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800&amp;family=Manrope:wght@400;500;600&amp;family=JetBrains+Mono&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "surface-dim": "#c9dde9",
+              "on-surface": "#0b1e26",
+              "on-background": "#0b1e26",
+              "on-secondary-fixed": "#0f1d25",
+              "surface-container-low": "#e7f6ff",
+              "inverse-primary": "#68dbae",
+              "surface-variant": "#d2e5f1",
+              "error-container": "#ffdad6",
+              "outline-variant": "#bccac1",
+              "on-secondary-fixed-variant": "#3b4951",
+              "on-tertiary-fixed": "#002117",
+              "secondary-container": "#d5e5ef",
+              "primary-fixed-dim": "#68dbae",
+              "on-tertiary": "#ffffff",
+              "on-error": "#ffffff",
+              "inverse-on-surface": "#e1f4ff",
+              "on-primary-container": "#f5fff7",
+              "tertiary-container": "#008565",
+              "secondary-fixed": "#d5e5ef",
+              "primary-container": "#008560",
+              "on-tertiary-container": "#f5fff8",
+              "inverse-surface": "#21333c",
+              "surface-bright": "#f4faff",
+              "secondary": "#526069",
+              "surface-container": "#ddf1fd",
+              "on-surface-variant": "#3d4943",
+              "surface-container-highest": "#d2e5f1",
+              "tertiary": "#00694f",
+              "on-tertiary-fixed-variant": "#00513d",
+              "background": "#f4faff",
+              "tertiary-fixed": "#8af7cf",
+              "on-primary": "#ffffff",
+              "on-primary-fixed-variant": "#00513a",
+              "on-secondary-container": "#586670",
+              "surface-container-high": "#d7ebf7",
+              "secondary-fixed-dim": "#bac9d3",
+              "surface-tint": "#006c4e",
+              "surface-container-lowest": "#ffffff",
+              "error": "#ba1a1a",
+              "tertiary-fixed-dim": "#6edab4",
+              "primary": "#00694c",
+              "primary-fixed": "#86f8c9",
+              "surface": "#f4faff",
+              "outline": "#6d7a73",
+              "on-primary-fixed": "#002115",
+              "on-error-container": "#93000a"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"],
+              "mono": ["JetBrains Mono"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .success-bg {
+            background-color: #E1F5EE;
+        }
+        .success-icon {
+            color: #1D9E75;
+        }
+        .summary-card {
+            background-color: #F6F7F8;
+            border-radius: 18px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-container-lowest font-body text-on-surface antialiased">
+<!-- Confirmation Screen Container -->
+<main class="min-h-screen flex flex-col items-center justify-between px-6 py-12 max-w-md mx-auto">
+<!-- Success Header Section -->
+<section class="w-full flex flex-col items-center text-center mt-8">
+<div class="success-bg w-[72px] h-[72px] rounded-full flex items-center justify-center mb-8">
+<span class="material-symbols-outlined success-icon text-[40px]" style="font-variation-settings: &quot;wght&quot; 600;">check</span>
+</div>
+<h1 class="font-headline font-extrabold text-4xl tracking-tight mb-2" style="">¡Listo, Juan!</h1>
+<p class="text-secondary font-medium text-lg" style="">Recibiste tu efectivo</p>
+</section>
+<!-- Summary Card -->
+<section class="w-full summary-card p-6 my-8">
+<div class="space-y-5">
+<!-- USDC Row -->
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium text-sm" style="">MXN enviados</span>
+<span class="font-bold text-on-surface" style="">$500.00</span>
+</div>
+<!-- Cash Received Row -->
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium text-sm" style="">Efectivo recibido</span>
+<span class="font-bold text-primary" style="">$495.00 MXN</span>
+</div>
+<!-- Commission Row -->
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium text-sm" style="">Comisión</span>
+<span class="font-medium text-on-surface" style="">$5.00</span>
+</div>
+<!-- Separation Gap (No lines as per design system) -->
+<div class="h-[1px] w-full bg-outline-variant/10"></div>
+<!-- Agent Row -->
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium text-sm" style="">Agente</span>
+<span class="font-semibold text-on-surface text-right" style="">Farmacia Guadalupe</span>
+</div>
+<!-- Time Row -->
+<div class="flex justify-between items-center">
+<span class="text-on-surface-variant font-medium text-sm" style="">Hora</span>
+<span class="text-on-surface-variant font-medium text-sm" style="">Hoy · 11:42 am</span>
+</div>
+</div>
+</section>
+<!-- Actions Section -->
+<section class="w-full flex flex-col items-center space-y-4">
+<!-- Primary Action -->
+<button class="w-full h-[46px] bg-gradient-to-r from-primary to-primary-container text-white font-semibold rounded-[8px] flex items-center justify-center transition-transform active:scale-95 duration-200" style="">
+                Volver al inicio
+            </button>
+<!-- Secondary Action -->
+<button class="w-full h-[46px] bg-transparent text-primary font-semibold flex items-center justify-center transition-opacity hover:opacity-80" style="">
+                Ver transacción on-chain
+            </button>
+<!-- Hash Text -->
+<div class="flex flex-col items-center space-y-1">
+<span class="text-[10px] uppercase tracking-widest text-outline-variant font-bold" style="">Transaction Hash</span>
+<code class="font-mono text-[11px] text-secondary tracking-tight">GBXYZ...4K2M</code>
+</div>
+</section>
+<!-- Rating Section -->
+<section class="w-full mt-12 mb-4 flex flex-col items-center text-center">
+<p class="text-on-surface-variant font-medium text-sm mb-4" style="">¿Cómo estuvo el intercambio?</p>
+<div class="flex space-x-3">
+<span class="material-symbols-outlined text-outline-variant text-[32px] cursor-pointer hover:text-primary-fixed-dim transition-colors" style="">star</span>
+<span class="material-symbols-outlined text-outline-variant text-[32px] cursor-pointer hover:text-primary-fixed-dim transition-colors" style="">star</span>
+<span class="material-symbols-outlined text-outline-variant text-[32px] cursor-pointer hover:text-primary-fixed-dim transition-colors" style="">star</span>
+<span class="material-symbols-outlined text-outline-variant text-[32px] cursor-pointer hover:text-primary-fixed-dim transition-colors" style="">star</span>
+<span class="material-symbols-outlined text-outline-variant text-[32px] cursor-pointer hover:text-primary-fixed-dim transition-colors" style="">star</span>
+</div>
+</section>
+</main>
+<!-- Branding Watermark (Optional from Design System) -->
+<div class="fixed bottom-0 right-0 opacity-[0.03] pointer-events-none -mb-12 -mr-12">
+<span class="material-symbols-outlined text-[300px]" data-icon="token" style="">token</span>
+</div>
+</body></html>

@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicoPay - Demo MVP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .chat-container { height: calc(100vh - 200px); }
+    .chat-messages { scroll-behavior: smooth; }
+    .typing { animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    .message-bot { background: #1f2937; }
+    .message-user { background: #065f46; }
+  </style>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  
+  <!-- Header -->
+  <header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-green-400">MicoPay Demo</h1>
+        <p class="text-gray-400 text-sm">Conversational Cash Exchange</p>
+      </div>
+      <div class="text-right">
+        <span id="api-status" class="text-yellow-400 text-sm">● Conectando...</span>
+        <p class="text-gray-500 text-xs">Simulated Telegram Bot</p>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-6">
+    
+    <!-- Info Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+        <p class="text-gray-400 text-sm mb-1">Network</p>
+        <p class="text-xl font-bold text-blue-400">Stellar Testnet</p>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+        <p class="text-gray-400 text-sm mb-1">Rate</p>
+        <p class="text-xl font-bold text-green-400">1 USDC = $17.50 MXN</p>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
+        <p class="text-gray-400 text-sm mb-1">Payment</p>
+        <p class="text-xl font-bold text-purple-400">Mock x402</p>
+      </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div class="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden">
+      <div class="bg-gray-900 px-4 py-3 border-b border-gray-700">
+        <h2 class="font-bold">💬 MicoPay Bot</h2>
+      </div>
+      
+      <div id="chat-messages" class="chat-container overflow-y-auto p-4 space-y-4">
+        <!-- Messages will appear here -->
+      </div>
+
+      <!-- Input -->
+      <div class="border-t border-gray-700 p-4 bg-gray-900">
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            id="user-input" 
+            placeholder="Escribe tu mensaje..."
+            class="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+            onkeypress="handleKeyPress(event)"
+          >
+          <button 
+            onclick="sendMessage()"
+            class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-bold"
+          >
+            Enviar
+          </button>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="flex flex-wrap gap-2 mt-3">
+          <button onclick="quickCommand('/start')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/start</button>
+          <button onclick="quickCommand('/status')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/status</button>
+          <button onclick="quickCommand('/rate')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/rate</button>
+          <button onclick="quickCommand('/agents')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/agents</button>
+          <button onclick="quickCommand('/help')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/help</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- API Response -->
+    <div class="mt-6">
+      <h3 class="font-bold mb-2">📡 API Response</h3>
+      <pre id="api-response" class="bg-black rounded-lg p-4 text-green-400 text-sm overflow-auto max-h-48">Click a command to see the API response...</pre>
+    </div>
+
+  </main>
+
+  <script>
+    const API = 'http://localhost:3000';
+    
+    // Sample agents data
+    const agents = [
+      { id: 'GM001', name: 'Farmacia Guadalupe', address: 'Roma Norte, CDMX', distance_km: 0.5, available_mxn: 5000, tier: 'maestro', reputation: 0.98, online: true },
+      { id: 'GM002', name: 'Tienda Don Pepe', address: 'Condesa, CDMX', distance_km: 1.2, available_mxn: 3000, tier: 'experto', reputation: 0.93, online: true },
+      { id: 'GM003', name: 'Papelería Central', address: 'Del Valle, CDMX', distance_km: 2.1, available_mxn: 2000, tier: 'activo', reputation: 0.88, online: true },
+    ];
+
+    const cetesData = { apy: 5.6, cesPriceMxn: 1.157565, xlmPerUsdc: 17.5 };
+
+    function addMessage(text, isUser = false) {
+      const chat = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.className = `p-3 rounded-xl ${isUser ? 'message-user ml-8' : 'message-bot mr-8'}`;
+      div.innerHTML = `<p class="whitespace-pre-wrap">${text}</p>`;
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function addTyping() {
+      const chat = document.getElementById('chat-messages');
+      const div = document.createElement('div');
+      div.id = 'typing';
+      div.className = 'message-bot mr-8 p-3 rounded-xl';
+      div.innerHTML = '<span class="typing">●●●</span>';
+      chat.appendChild(div);
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById('typing');
+      if (typing) typing.remove();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('user-input');
+      const text = input.value.trim();
+      if (!text) return;
+      
+      addMessage(text, true);
+      input.value = '';
+      
+      addTyping();
+      await new Promise(r => setTimeout(r, 800 + Math.random() * 500));
+      removeTyping();
+      
+      await processCommand(text);
+    }
+
+    async function processCommand(cmd) {
+      const command = cmd.toLowerCase().trim();
+      let response = '';
+      let apiData = null;
+
+      switch(command) {
+        case '/start':
+          response = `👋 *Bienvenido a MicoPay*
+
+Convierte tus USDC en efectivo MXN de forma rápida y segura usando la red Stellar.
+
+*¿Qué puedo hacer?*
+• /help - Ver todos los comandos
+• /status - Estado del sistema  
+• /agents - Ver agentes disponibles
+• /rate - Ver tasa USDC/MXN
+• /request - Solicitar efectivo
+
+¡Empieza a usar MicoPay hoy! 🚀`;
+          apiData = { command: '/start' };
+          break;
+
+        case '/help':
+          response = `📚 *Ayuda*
+
+/start - Mensaje de bienvenida
+/status - Estado del sistema
+/agents - Lista de agentes
+/rate - Tasa de cambio
+/request - Solicitar efectivo
+/demo - Ver demo completo`;
+          apiData = { command: '/help' };
+          break;
+
+        case '/status':
+          addMessage('⏳ Verificando estado del sistema...');
+          try {
+            const res = await fetch(API + '/health');
+            apiData = await res.json();
+            response = `🟢 *Sistema Operativo*
+
+*Servicio:* ${apiData.service}
+*Versión:* ${apiData.version}
+*Método de pago:* ${apiData.payment_method}
+*Red:* ${apiData.network}`;
+          } catch (e) {
+            response = '❌ Error al conectar con el API. Asegúrate que el servidor esté corriendo.';
+            apiData = { error: e.message };
+          }
+          break;
+
+        case '/rate':
+        case '/rates':
+          addMessage('⏳ Obteniendo tasa de cambio...');
+          try {
+            const res = await fetch(API + '/defi/cetes/rate');
+            apiData = await res.json();
+            response = `💱 *Tasa de Cambio*
+
+*1 USDC = $${apiData.cesPriceMxn * 17.5} MXN*
+*APY CETES: ${apiData.apy}%*
+*XLM/USDC: ${apiData.xlmPerUsdc}*
+
+_Última actualización: ${new Date().toISOString()}_`;
+          } catch (e) {
+            response = '❌ Error al obtener tasas. Usando datos simulados.\n\n💱 *Tasa de Cambio (Simulada)*\n\n*1 USDC = $17.50 MXN*';
+            apiData = cetesData;
+          }
+          break;
+
+        case '/agents':
+          addMessage('⏳ Obteniendo agentes disponibles...');
+          response = `💵 *Agentes Disponibles* (${agents.length})
+
+*Tasa actual:* 1 USDC = $17.50 MXN
+
+${agents.map((a, i) => `${i+1}. *${a.name}* ${a.online ? '🟢' : '🔴'}
+   📍 ${a.address}
+   📏 ${a.distance_km} km
+   💰 Disponible: $${a.available_mxn} MXN
+   ⭐ Reputación: ${(a.reputation * 100).toFixed(0)}%
+   🏆 Tier: ${a.tier}`).join('\n\n')}
+
+_Elige un agente para continuar_`;
+          apiData = { agents };
+          break;
+
+        case '/demo':
+        case '/request':
+          response = `📋 *Solicitud de Efectivo*
+
+*Cantidad:* $1,000 MXN
+*En USDC:* 57.14 USDC
+*Agente:* Farmacia Guadalupe
+*Comisión:* 0.5%
+
+\`\`\`
+1. Paga 57.14 USDC a GDEMO...
+2. Recibirás $1,000 MXN
+3. Tiempo estimado: 5 minutos
+\`\`\`
+
+¿Confirmas la operación? (sí/no)`;
+          apiData = { 
+            amount_mxn: 1000,
+            amount_usdc: 57.14,
+            agent: 'Farmacia Guadalupe',
+            commission: 0.5
+          };
+          break;
+
+        case 'sí':
+        case 'si':
+        case 'si, confirmar':
+          response = `✅ *Operación Confirmada*
+
+Txn Hash: \`demo_txn_1234567890\`
+Monto: 57.14 USDC → $1,000 MXN
+Estado: ✅ Completado
+
+¡Gracias por usar MicoPay! 🎉`;
+          apiData = { status: 'completed', demo: true };
+          break;
+
+        default:
+          response = `No entendí tu mensaje. 
+
+Usa /help para ver los comandos disponibles.`;
+          apiData = { error: 'unknown_command', input: command };
+      }
+
+      if (response) addMessage(response);
+      document.getElementById('api-response').textContent = JSON.stringify(apiData, null, 2);
+    }
+
+    function quickCommand(cmd) {
+      document.getElementById('user-input').value = cmd;
+      sendMessage();
+    }
+
+    function handleKeyPress(e) {
+      if (e.key === 'Enter') sendMessage();
+    }
+
+    // Check API status
+    async function checkApiStatus() {
+      const statusEl = document.getElementById('api-status');
+      try {
+        await fetch(API + '/health');
+        statusEl.textContent = '● Conectado';
+        statusEl.className = 'text-green-400 text-sm';
+      } catch {
+        statusEl.textContent = '● Modo Demo';
+        statusEl.className = 'text-yellow-400 text-sm';
+      }
+    }
+
+    // Initialize
+    checkApiStatus();
+    setTimeout(() => {
+      addMessage(`👋 *Bienvenido a MicoPay Demo!*
+
+Este es un bot simulado que muestra cómo funcionaría el servicio real.
+
+*Prueba estos comandos:*
+• /start - Inicio
+• /status - Estado del sistema
+• /rate - Ver tasa actual
+• /agents - Ver agentes P2P
+• /demo - Ver demo de operación
+
+Usa los botones de abajo o escribe directamente.`, false);
+    }, 500);
+  </script>
+</body>
+</html>

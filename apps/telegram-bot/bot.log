@@ -1,0 +1,6 @@
+Starting MicoPay Bot...
+Bot started! Mini App: http://localhost:3001/miniapp.html
+Mini App server running on port 3001
+Error en bot: GrammyError in middleware: Call to 'answerCallbackQuery' failed! (400: Bad Request: query is too old and response timeout expired or query ID is invalid)
+Error en bot: GrammyError in middleware: Call to 'answerCallbackQuery' failed! (400: Bad Request: query is too old and response timeout expired or query ID is invalid)
+Error en bot: GrammyError in middleware: Call to 'answerCallbackQuery' failed! (400: Bad Request: query is too old and response timeout expired or query ID is invalid)

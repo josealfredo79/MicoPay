@@ -1,0 +1,63 @@
+version: "3.9"
+
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=postgresql://micopay:micopay_secret@postgres:5432/micopay_db
+      - STELLAR_RPC_URL=${STELLAR_RPC_URL:-https://soroban-testnet.stellar.org}
+      - STELLAR_NETWORK=TESTNET
+      - ESCROW_CONTRACT_ID=${ESCROW_CONTRACT_ID:-CBQINHLR3M7NZAPQY7EJ3TWOE22R57LMFDVEMOK3C3X7ZIBFWHVQQP3A}
+      - PLATFORM_SECRET_KEY=${PLATFORM_SECRET_KEY}
+      - PLATFORM_STELLAR_ADDRESS=${PLATFORM_STELLAR_ADDRESS:-GDKKW2WSMQWZ63PIZBKDDBAAOBG5FP3TUHRYQ4U5RBKTFNESL5K5BJJK}
+      - JWT_SECRET=${JWT_SECRET:-change_me_in_production}
+      - SECRET_ENCRYPTION_KEY=${SECRET_ENCRYPTION_KEY:-0123456789abcdef0123456789abcdef}
+      - MOCK_STELLAR=${MOCK_STELLAR:-false}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "5186:5186"
+    environment:
+      - VITE_API_URL=http://api:3000
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=micopay
+      - POSTGRES_PASSWORD=micopay_secret
+      - POSTGRES_DB=micopay_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U micopay -d micopay_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

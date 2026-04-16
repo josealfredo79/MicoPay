@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "outline-variant": "#bccac1",
+              "tertiary-container": "#008565",
+              "on-tertiary-container": "#f5fff8",
+              "on-primary-fixed-variant": "#00513a",
+              "inverse-on-surface": "#e1f4ff",
+              "on-error": "#ffffff",
+              "surface-dim": "#c9dde9",
+              "surface-container-lowest": "#ffffff",
+              "tertiary-fixed": "#8af7cf",
+              "on-primary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-primary-container": "#f5fff7",
+              "surface-container-low": "#e7f6ff",
+              "surface-variant": "#d2e5f1",
+              "on-surface": "#0b1e26",
+              "primary-fixed-dim": "#68dbae",
+              "on-primary-fixed": "#002115",
+              "surface-bright": "#f4faff",
+              "primary-fixed": "#86f8c9",
+              "surface-container": "#ddf1fd",
+              "inverse-surface": "#21333c",
+              "primary": "#00694c",
+              "on-surface-variant": "#3d4943",
+              "surface-tint": "#006c4e",
+              "tertiary-fixed-dim": "#6edab4",
+              "tertiary": "#00694f",
+              "secondary-fixed": "#d5e5ef",
+              "on-tertiary-fixed-variant": "#00513d",
+              "on-background": "#0b1e26",
+              "inverse-primary": "#68dbae",
+              "on-tertiary-fixed": "#002117",
+              "on-secondary-fixed-variant": "#3b4951",
+              "on-tertiary": "#ffffff",
+              "background": "#f4faff",
+              "surface-container-highest": "#d2e5f1",
+              "outline": "#6d7a73",
+              "error-container": "#ffdad6",
+              "secondary-container": "#d5e5ef",
+              "on-error-container": "#93000a",
+              "on-secondary-fixed": "#0f1d25",
+              "surface-container-high": "#d7ebf7",
+              "surface": "#f4faff",
+              "error": "#ba1a1a",
+              "secondary": "#526069",
+              "secondary-fixed-dim": "#bac9d3",
+              "on-secondary-container": "#586670",
+              "primary-container": "#008560"
+            },
+            fontFamily: {
+              "headline": ["Plus Jakarta Sans"],
+              "body": ["Manrope"],
+              "label": ["Manrope"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .chat-bg {
+        background-image: radial-gradient(circle at 2px 2px, rgba(0, 105, 76, 0.03) 1px, transparent 0);
+        background-size: 24px 24px;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface antialiased selection:bg-primary/10">
+<!-- TopAppBar -->
+<header class="flex items-center justify-between px-6 py-4 w-full sticky top-0 z-50 bg-[#F4FAFF] dark:bg-[#0B1E26]">
+<div class="flex items-center gap-4">
+<button class="flex items-center justify-center p-2 text-[#00694C] dark:text-[#5DCAA5] hover:bg-[#E7F6FF] dark:hover:bg-[#1A2830] transition-colors rounded-full active:scale-95 duration-150">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<div class="flex flex-col">
+<div class="flex items-center gap-2">
+<h1 class="font-['Plus_Jakarta_Sans'] font-bold text-lg tracking-tight text-[#0B1E26] dark:text-[#F4FAFF]">Tienda Don Pepe</h1>
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 border border-primary/20">
+<span class="material-symbols-outlined !text-[12px]" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
+                        VERIFICADO
+                    </span>
+</div>
+<span class="text-xs text-on-surface/60 font-medium">Agente Autorizado</span>
+</div>
+</div>
+<button class="p-2 text-[#0B1E26] dark:text-[#F4FAFF] opacity-70 hover:bg-[#E7F6FF] dark:hover:bg-[#1A2830] transition-colors rounded-full">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</header>
+<div class="bg-[#E7F6FF] dark:bg-[#1A2830] h-[1px] w-full"></div>
+<main class="max-w-2xl mx-auto flex flex-col min-h-[calc(100vh-73px)]">
+<!-- Status Banner -->
+<section class="px-6 py-4">
+<div class="bg-primary-xlight/10 border border-primary/10 bg-white shadow-sm rounded-2xl p-4 flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-accent/20 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="task_alt" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-bold text-primary font-headline">Oferta aceptada · Saldo bloqueado en garantía</p>
+<p class="text-xs text-on-surface/60">Tu depósito está protegido por el sistema de seguridad.</p>
+</div>
+</div>
+</section>
+<!-- Message List -->
+<div class="flex-grow px-6 py-4 flex flex-col gap-6 chat-bg">
+<!-- Timestamp Divider -->
+<div class="flex justify-center">
+<span class="bg-surface-container-low text-on-surface/40 text-[10px] font-bold tracking-widest px-3 py-1 rounded-full uppercase">Hoy</span>
+</div>
+<!-- Agent Message -->
+<div class="flex flex-col gap-2 max-w-[85%] self-start">
+<div class="bg-white rounded-tr-2xl rounded-bl-2xl rounded-br-2xl p-4 shadow-sm border border-surface-container-high">
+<p class="text-[15px] leading-relaxed text-on-surface">Hola Juan, ya recibí tu solicitud. Te comparto la ubicación, Av. Leones 32.</p>
+</div>
+<div class="flex items-center gap-2 ml-1">
+<span class="text-[10px] text-on-surface/40 font-semibold">14:20</span>
+</div>
+</div>
+<!-- Map Snippet (Editorial Style) -->
+<div class="self-start w-full max-w-[80%] rounded-2xl overflow-hidden border border-surface-container-high shadow-sm bg-white">
+<div class="h-32 w-full bg-surface-container-low relative">
+<img alt="Mapa de ubicación" class="w-full h-full object-cover opacity-60 grayscale brightness-110" data-alt="Abstract minimalist map view of city streets" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdrP0S2zR1_vlht1i0wlj9e-sReSyFR-MJkLvn_na603KBPFMch6Cn5TEUvnfn0eSCT1tHhmN5zpI0yGfoBjnhGS1VB2oesYSjWI7-SI433naf37a4c0NP2SzPidni9zXGTUmQXpo5ZWoArhiOKPasU-kDsDnL06AvCcKTJQO2gh0pBZ24EDbgigrVnzfBcvMG-Oshwxyy1nBuES5YoHJzVnmBUXNzbv2-v615XB9lp-0vO_UklNzVVbllZhvqtO-Bww8af0An4rXq"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="w-8 h-8 bg-primary rounded-full border-4 border-white flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-white text-sm" data-icon="location_on" style="font-variation-settings: 'FILL' 1;">location_on</span>
+</div>
+</div>
+</div>
+<div class="p-3">
+<p class="text-xs font-bold text-on-surface">Av. Leones 32</p>
+<p class="text-[10px] text-on-surface/60">Tienda Don Pepe · 800m de ti</p>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex flex-col gap-2 max-w-[85%] self-end">
+<div class="bg-primary text-white rounded-tl-2xl rounded-bl-2xl rounded-br-2xl p-4 shadow-md">
+<p class="text-[15px] leading-relaxed">Gracias, llego en 2 minutos.</p>
+</div>
+<div class="flex items-center justify-end gap-1 mr-1">
+<span class="text-[10px] text-on-surface/40 font-semibold">14:21</span>
+<span class="material-symbols-outlined !text-[12px] text-accent" data-icon="done_all">done_all</span>
+</div>
+</div>
+</div>
+<!-- Action Area & Input (Sticky Bottom) -->
+<footer class="sticky bottom-0 bg-surface/80 backdrop-blur-xl px-6 pb-8 pt-4 flex flex-col gap-4">
+<!-- Quick Actions -->
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-primary/20 bg-white text-primary font-bold text-sm hover:bg-surface-container-low transition-all active:scale-95">
+<span class="material-symbols-outlined !text-[20px]" data-icon="location_on">location_on</span>
+                    Compartir ubicación
+                </button>
+<button class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-gradient-to-r from-primary to-primary-container text-white font-bold text-sm shadow-lg shadow-primary/20 hover:brightness-110 transition-all active:scale-95">
+<span class="material-symbols-outlined !text-[20px]" data-icon="qr_code_2">qr_code_2</span>
+                    Ver mi QR de depósito
+                </button>
+</div>
+<!-- Input Bar -->
+<div class="flex items-center gap-3 bg-white border-b border-outline-variant/20 py-2">
+<button class="p-2 text-primary/60 hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+</button>
+<div class="flex-grow">
+<input class="w-full bg-transparent border-none focus:ring-0 text-sm font-medium placeholder:text-on-surface/30" placeholder="Escribe un mensaje..." type="text"/>
+</div>
+<button class="w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined" data-icon="send" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</footer>
+</main>
+<!-- BottomNavBar (Suppressed due to task-focused flow) -->
+<!-- The BottomNavBar is hidden here to prioritize the focused transactional chat journey -->
+</body></html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicoPay Protocol - Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen">
+  <nav class="bg-gray-800 border-b border-gray-700 px-6 py-4">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-green-400">MicoPay Protocol</h1>
+      <span class="text-sm text-gray-400">v1.0.0</span>
+    </div>
+  </nav>
+
+  <main class="p-6 max-w-6xl mx-auto">
+    <h2 class="text-3xl font-bold mb-6">Dashboard</h2>
+    
+    <!-- Status Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 class="text-gray-400 text-sm mb-2">API Status</h3>
+        <div id="api-status" class="text-2xl font-bold text-yellow-400">Checking...</div>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 class="text-gray-400 text-sm mb-2">Network</h3>
+        <div class="text-2xl font-bold text-blue-400">Stellar Testnet</div>
+      </div>
+      <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+        <h3 class="text-gray-400 text-sm mb-2">Payment Method</h3>
+        <div class="text-2xl font-bold text-purple-400">x402 (USDC)</div>
+      </div>
+    </div>
+
+    <!-- CETES Rate -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700 mb-8">
+      <h3 class="text-xl font-bold mb-4">CETES Rate (Live from Etherfuse)</h3>
+      <div id="cetes-rate" class="text-gray-400">Loading...</div>
+    </div>
+
+    <!-- API Endpoints -->
+    <div class="bg-gray-800 rounded-xl p-6 border border-gray-700">
+      <h3 class="text-xl font-bold mb-4">API Endpoints</h3>
+      <div class="space-y-2 font-mono text-sm">
+        <div class="flex items-center gap-2">
+          <span class="bg-green-600 text-white px-2 py-1 rounded text-xs">GET</span>
+          <a href="#" onclick="fetchHealth(event)" class="text-green-400 hover:underline">/health</a>
+          <span class="text-gray-500">- Health check</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs">GET</span>
+          <a href="#" onclick="fetchCETES(event)" class="text-green-400 hover:underline">/defi/cetes/rate</a>
+          <span class="text-gray-500">- CETES rates</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="bg-blue-600 text-white px-2 py-1 rounded text-xs">GET</span>
+          <a href="#" onclick="fetchAgents(event)" class="text-green-400 hover:underline">/api/v1/cash/agents</a>
+          <span class="text-gray-500">- P2P agents (requires x402)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Response -->
+    <div class="mt-8">
+      <h3 class="text-xl font-bold mb-4">Response</h3>
+      <pre id="response" class="bg-black rounded-lg p-4 overflow-auto max-h-96 text-green-400 text-sm">Click an endpoint above</pre>
+    </div>
+  </main>
+
+  <script>
+    const API = 'http://localhost:3000';
+    
+    function formatJSON(data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    async function fetchHealth(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch(API + '/health');
+        const data = await res.json();
+        document.getElementById('response').textContent = formatJSON(data);
+        document.getElementById('api-status').textContent = 'Online';
+        document.getElementById('api-status').className = 'text-2xl font-bold text-green-400';
+      } catch (err) {
+        document.getElementById('response').textContent = 'Error: ' + err.message;
+        document.getElementById('api-status').textContent = 'Offline';
+        document.getElementById('api-status').className = 'text-2xl font-bold text-red-400';
+      }
+    }
+
+    async function fetchCETES(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch(API + '/defi/cetes/rate');
+        const data = await res.json();
+        document.getElementById('cetes-rate').innerHTML = `
+          <div class="grid grid-cols-3 gap-4 mt-2">
+            <div><span class="text-gray-400">APY:</span> <span class="text-green-400 font-bold">${data.apy}%</span></div>
+            <div><span class="text-gray-400">Price MXN:</span> <span class="text-green-400 font-bold">$${data.cesPriceMxn}</span></div>
+            <div><span class="text-gray-400">XLM/USDC:</span> <span class="text-green-400 font-bold">${data.xlmPerUsdc}</span></div>
+          </div>
+        `;
+        document.getElementById('response').textContent = formatJSON(data);
+      } catch (err) {
+        document.getElementById('response').textContent = 'Error: ' + err.message;
+      }
+    }
+
+    async function fetchAgents(e) {
+      e.preventDefault();
+      try {
+        const res = await fetch(API + '/api/v1/cash/agents');
+        const data = await res.json();
+        document.getElementById('response').textContent = formatJSON(data);
+      } catch (err) {
+        document.getElementById('response').textContent = 'Error: ' + err.message;
+      }
+    }
+
+    // Check health on load
+    fetchHealth(new Event('click'));
+  </script>
+</body>
+</html>
