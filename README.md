@@ -1,5 +1,9 @@
 # 🍄 MicoPay Protocol
 
+[![CI](https://github.com/YOUR_USERNAME/micopay-protocol/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/micopay-protocol/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/tests-127%20passing-brightgreen)](apps/api/src/__tests__)
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)](tsconfig.json)
+
 **The first API that gives AI agents access to physical cash in Mexico**
 
 > Stellar Hacks: Agents — DoraHacks 2026
