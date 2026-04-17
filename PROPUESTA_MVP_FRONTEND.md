@@ -1,6 +1,7 @@
 # Propuesta: Interfaz MVP para Retiros
 
 **Fecha:** 2026-04-16
+**Última actualización:** 2026-04-17
 **Proyecto:** MicoPay Protocol
 
 ---
@@ -9,39 +10,61 @@
 
 El proyecto tiene **dos frontends**:
 - `micopay/frontend` → Conecta a `micopay/backend` (viejo)
-- `apps/web` → No existe aún
+- `apps/web` → Interfaz principal (production-ready)
 
 ---
 
-## Propuesta: Crear interfaz MVP en `apps/web`
-
-### Estructura de archivos
+## Estructura de archivos
 
 ```
-apps/web/
-├── src/
-│   ├── pages/
-│   │   ├── Home.tsx              # Dashboard con balance
-│   │   ├── CashoutFlow/
-│   │   │   ├── EnterAmount.tsx   # Paso 1: Ingresar monto
-│   │   │   ├── SelectAgent.tsx   # Paso 2: Mapa + lista merchants
-│   │   │   └── ClaimQR.tsx       # Paso 3: QR para cobrar
-│   │   └── TransactionStatus.tsx  # Verificar estado
-│   ├── components/
-│   │   ├── MerchantCard.tsx
-│   │   ├── MapView.tsx           # Integración mapa
-│   │   └── BalanceDisplay.tsx
-│   ├── services/
-│   │   └── micopay-api.ts        # Cliente para API
-│   └── hooks/
-│       └── useCashRequest.ts
+apps/web/src/
+├── App.tsx                      # Router principal
+├── main.tsx                     # Entry point
+├── pages/
+│   └── mobile/                  # Páginas mobile
+│       ├── Home.tsx             # Dashboard con balance
+│       ├── DepositRequest.tsx   # Ingresar monto depósito
+│       ├── DepositMap.tsx       # Mapa + lista merchants
+│       ├── DepositQR.tsx        # QR para cobrar
+│       ├── DepositChat.tsx       # Chat con agente
+│       ├── CashoutRequest.tsx   # Solicitar retiro
+│       ├── TransactionStatus.tsx # Polling de estado
+│       └── ...
+├── components/
+│   ├── ui/                      # Componentes reutilizables
+│   │   ├── Button.tsx
+│   │   ├── Card.tsx
+│   │   ├── Input.tsx
+│   │   ├── Badge.tsx
+│   │   ├── Avatar.tsx
+│   │   └── index.ts
+│   ├── domain/                  # Componentes de negocio
+│   │   ├── MerchantCard.tsx     # Card de agente
+│   │   ├── MapView.tsx         # Mapa Leaflet real
+│   │   ├── BalanceDisplay.tsx   # Saldo con estilos
+│   │   └── index.ts
+│   ├── layout/                  # Layout
+│   │   ├── Logo.tsx
+│   │   └── BottomNav.tsx
+│   └── demo/                    # Demo legacy
+│       ├── DemoTerminal.tsx
+│       └── ...
+├── services/
+│   ├── api.ts                   # Cliente API
+│   └── index.ts
+├── hooks/
+│   ├── useAgents.ts            # Hook para agentes
+│   ├── useCashRequest.ts       # Hook para solicitudes
+│   └── index.ts
+└── types/
+    └── index.ts                # TypeScript types
 ```
 
 ### Conexión con API
 
 ```typescript
 // GET /api/v1/cash/agents?lat=19.4&lng=-99.1&amount=500
-// → Lista de merchants cercanos
+// → Lista de agents cercanos
 
 // POST /api/v1/cash/request
 // → Crea request, devuelve QR payload
@@ -50,46 +73,81 @@ apps/web/
 // → Consulta estado
 ```
 
-### Funcionalidades MVP
-
-| Feature | Descripción |
-|---------|-------------|
-| **1. Balance** | Mostrar saldo USDC del usuario |
-| **2. Ingresar monto** | Input para MXN a retirar |
-| **3. Mapa interactivo** | Leaflet/OpenStreetMap con merchants |
-| **4. Lista merchants** | Cards con distancia, tasa, reputación |
-| **5. Solicitar retiro** | Llamar API, mostrar QR |
-| **6. Estado** | Polling del estado de la transacción |
-
-### Dependencias a agregar
+### Dependencias
 
 ```json
 {
   "leaflet": "^1.9.4",
-  "react-leaflet": "^4.2.1",
-  "@tanstack/react-query": "^5.0.0"
+  "@types/leaflet": "^1.9.21",
+  "react-router-dom": "^7.14.1",
+  "vitest": "^4.1.4",
+  "@testing-library/react": "^16.3.2"
 }
 ```
 
-### Tiempo estimado
+---
 
-- **Interfaz básica**: 2-3 horas
-- **Integración mapa**: 1-2 horas  
-- **Tests**: 1 hora
+## Funcionalidades MVP
 
-**Total: ~5 horas**
+| Feature | Descripción | Estado |
+|---------|-------------|--------|
+| **1. Balance** | Mostrar saldo USDC del usuario | ✅ |
+| **2. Ingresar monto** | Input para MXN a retirar | ✅ |
+| **3. Mapa interactivo** | Leaflet/OpenStreetMap con agents | ✅ |
+| **4. Lista agents** | Cards con distancia, tasa, reputación | ✅ |
+| **5. Solicitar retiro** | Llamar API, mostrar QR | ✅ |
+| **6. Estado** | Polling del estado de la transacción | ✅ |
 
 ---
 
-## Mejoras implementadas (2026-04-16)
+## Mejoras implementadas
 
-| # | Mejora | Estado |
-|---|--------|--------|
-| 1 | Validación de config con Zod | ✅ |
-| 2 | Eliminar fallback demo en escrow | ✅ |
-| 3 | Tests con mocks | ✅ |
-| 4 | ESLint + TypeScript strict | ✅ |
-| 5 | Persistencia PostgreSQL | ✅ |
-| 6 | CI/CD con GitHub Actions | ✅ |
+| # | Mejora | Estado | Fecha |
+|---|--------|--------|-------|
+| 1 | Validación de config con Zod | ✅ | 2026-04-16 |
+| 2 | Eliminar fallback demo en escrow | ✅ | 2026-04-16 |
+| 3 | Tests con mocks | ✅ | 2026-04-16 |
+| 4 | ESLint + TypeScript strict | ✅ | 2026-04-16 |
+| 5 | Persistencia PostgreSQL | ✅ | 2026-04-16 |
+| 6 | CI/CD con GitHub Actions | ✅ | 2026-04-16 |
+| 7 | Reestructuración frontend | ✅ | 2026-04-17 |
+| 8 | UI components reutilizables | ✅ | 2026-04-17 |
+| 9 | MapView con Leaflet real | ✅ | 2026-04-17 |
+| 10 | TransactionStatus con polling | ✅ | 2026-04-17 |
+| 11 | Tests frontend con Vitest | ✅ | 2026-04-17 |
 
-**Tests: 127 passing** | **Lint: 0 errors, 102 warnings**
+---
+
+## Métricas
+
+| Componente | Estado |
+|------------|--------|
+| **API Tests** | 127 passing |
+| **API Lint** | 0 errors, 0 warnings |
+| **Web Tests** | 6 passing |
+| **Web Build** | successful |
+| **Web Lint** | N/A (sin ESLint config) |
+
+---
+
+## Próximos pasos
+
+1. [ ] Agregar más tests de integración
+2. [ ] Configurar ESLint en el frontend
+3. [ ] Implementar conexión real con wallet (Freighter)
+4. [ ] Agregar animaciones y transiciones
+5. [ ] PWA support para offline
+6. [ ] Tests E2E con Playwright
+
+---
+
+## Tiempo invertido
+
+| Fase | Tiempo |
+|------|--------|
+| Configuración inicial | 2 horas |
+| API backend | 3 horas |
+| Frontend restructuring | 2 horas |
+| MapView + components | 2 horas |
+| Tests | 1 hora |
+| **Total** | ~10 horas |

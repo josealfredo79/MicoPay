@@ -42,7 +42,7 @@ export function CardHeader({ children, className = '' }: CardHeaderProps) {
 }
 
 interface CardContentProps {
-  children: ReactNode;
+  children?: ReactNode;
   className?: string;
 }
 
