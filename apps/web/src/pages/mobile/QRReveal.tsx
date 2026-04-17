@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { getSecret, completeTrade, TradeData } from '../services/api';
+import { api } from '../../services/api';
+import type { TradeData } from '../../types';
 
 interface QRRevealProps {
     activeTrade: TradeData | null;
@@ -21,13 +22,13 @@ const QRReveal = ({ activeTrade, sellerToken, buyerToken, amount, onBack, onChat
     useEffect(() => {
         if (!activeTrade || !sellerToken) return;
 
-        getSecret(activeTrade.id, sellerToken)
+        api.trades.getSecret(activeTrade.id, sellerToken)
             .then(({ qr_payload }) => {
                 setQrPayload(qr_payload);
                 setSecretLoaded(true);
                 console.log('✅ Secret fetched for trade', activeTrade.id);
             })
-            .catch((e) => {
+            .catch((e: Error) => {
                 console.warn('Could not fetch secret, using demo QR', e);
             });
     }, [activeTrade, sellerToken]);
@@ -37,7 +38,7 @@ const QRReveal = ({ activeTrade, sellerToken, buyerToken, amount, onBack, onChat
         setIsConfirming(true);
         try {
             if (activeTrade && buyerToken) {
-                await completeTrade(activeTrade.id, buyerToken);
+                await api.trades.complete(activeTrade.id, buyerToken);
                 console.log('✅ Trade completed on-chain');
             }
         } catch (e) {

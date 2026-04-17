@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Logo } from '../components/Logo';
-import { getTradeHistory, getAccountBalance, TradeHistoryItem } from '../services/api';
+import { Logo } from '../../components/layout/Logo';
+import { api } from '../../services/api';
+import type { TradeHistoryItem } from '../../types';
 
 const EXPLORER = 'https://stellar.expert/explorer/testnet/tx';
 
@@ -25,7 +26,7 @@ const Home = ({ onNavigateCashout, onNavigateDeposit, token }: HomeProps) => {
   const [stellarAddress, setStellarAddress] = useState<string>('');
 
   useEffect(() => {
-    getAccountBalance()
+    api.account.getBalance()
       .then(({ xlm, address }) => {
         setXlmBalance(parseFloat(xlm).toLocaleString('es-MX', { maximumFractionDigits: 2 }));
         setStellarAddress(address);
@@ -35,7 +36,7 @@ const Home = ({ onNavigateCashout, onNavigateDeposit, token }: HomeProps) => {
 
   useEffect(() => {
     if (!token) return;
-    getTradeHistory(token)
+    api.trades.getHistory(token)
       .then(setTrades)
       .catch(() => {});
   }, [token]);

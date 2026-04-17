@@ -1,19 +1,19 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
-import Home from "./pages/Home";
-import DepositMap from "./pages/DepositMap";
-import DepositRequest from "./pages/DepositRequest";
-import DepositQR from "./pages/DepositQR";
-import DepositChat from "./pages/DepositChat";
-import SuccessScreen from "./pages/SuccessScreen";
-import CashoutRequest from "./pages/CashoutRequest";
-import Explore from "./pages/Explore";
-import DemoTerminal from "./components/DemoTerminal";
-import ServiceCatalog from "./components/ServiceCatalog";
-import ReputationPanel from "./components/ReputationPanel";
-import BazaarFeed from "./components/BazaarFeed";
-import FundWidget from "./components/FundWidget";
+import Home from "./pages/mobile/Home";
+import DepositMap from "./pages/mobile/DepositMap";
+import DepositRequest from "./pages/mobile/DepositRequest";
+import DepositQR from "./pages/mobile/DepositQR";
+import DepositChat from "./pages/mobile/DepositChat";
+import SuccessScreen from "./pages/mobile/SuccessScreen";
+import CashoutRequest from "./pages/mobile/CashoutRequest";
+import Explore from "./pages/mobile/Explore";
+import DemoTerminal from "./components/demo/DemoTerminal";
+import ServiceCatalog from "./components/demo/ServiceCatalog";
+import ReputationPanel from "./components/demo/ReputationPanel";
+import BazaarFeed from "./components/demo/BazaarFeed";
+import FundWidget from "./components/demo/FundWidget";
 
-const API_URL = (import.meta as any).env?.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export default function App() {
   return (
@@ -56,7 +56,7 @@ function DepositMapWrapper() {
   return (
     <DepositMap 
       onBack={() => navigate(-1)}
-      onSelectOffer={(id) => navigate('/deposit/request?agent=' + id)}
+      onSelectOffer={(id: string) => navigate('/deposit/request?agent=' + id)}
       amountMxn={500}
       userLat={19.4195}
       userLng={-99.1627}
@@ -69,7 +69,7 @@ function DepositRequestWrapper() {
   return (
     <DepositRequest 
       onBack={() => navigate(-1)}
-      onSearch={(amount) => navigate('/deposit/map?amount=' + amount)}
+      onSearch={(amount: string) => navigate('/deposit/map?amount=' + amount)}
     />
   );
 }
@@ -120,7 +120,7 @@ function CashoutRequestWrapper() {
   return (
     <CashoutRequest 
       onBack={() => navigate(-1)}
-      onSearch={(amount) => navigate('/deposit/map?amount=' + amount)}
+      onSearch={(amount: number) => navigate('/deposit/map?amount=' + amount)}
     />
   );
 }

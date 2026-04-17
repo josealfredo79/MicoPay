@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MapSim from '../components/MapSim';
+import MapSim from '../../components/MapSim';
 
 interface Agent {
   id: string;

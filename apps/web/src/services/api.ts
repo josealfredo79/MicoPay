@@ -1,4 +1,14 @@
 import axios from 'axios';
+import type {
+  UserData,
+  TradeData,
+  TradeHistoryItem,
+  AccountBalance,
+  Agent,
+  CashRequestResponse,
+  AgentsResponse,
+  RateResponse,
+} from '../types';
 
 const BASE_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -17,26 +27,15 @@ function randomAddress(prefix: string): string {
   return address.substring(0, 56);
 }
 
-export interface UserData {
-  id: string;
-  username: string;
-  token: string;
-}
-
-export interface TradeData {
-  id: string;
-  status: string;
-  secret_hash: string;
-  amount_mxn: number;
-}
-
-export async function registerUser(username: string): Promise<UserData> {
+// User API
+async function registerUser(username: string): Promise<UserData> {
   const stellar_address = randomAddress(username.substring(0, 6));
   const res = await http.post('/users/register', { username, stellar_address });
   return { ...res.data.user, token: res.data.token };
 }
 
-export async function createTrade(
+// Trades API
+async function createTrade(
   sellerId: string,
   amountMxn: number,
   buyerToken: string,
@@ -49,7 +48,7 @@ export async function createTrade(
   return res.data.trade;
 }
 
-export async function lockTrade(tradeId: string, sellerToken: string): Promise<{ lock_tx_hash: string }> {
+async function lockTrade(tradeId: string, sellerToken: string): Promise<{ lock_tx_hash: string }> {
   const res = await http.post(
     `/trades/${tradeId}/lock`,
     {},
@@ -58,11 +57,11 @@ export async function lockTrade(tradeId: string, sellerToken: string): Promise<{
   return { lock_tx_hash: res.data.lock_tx_hash };
 }
 
-export async function revealTrade(tradeId: string, sellerToken: string): Promise<void> {
+async function revealTrade(tradeId: string, sellerToken: string): Promise<void> {
   await http.post(`/trades/${tradeId}/reveal`, undefined, authHeaders(sellerToken));
 }
 
-export async function getSecret(
+async function getSecret(
   tradeId: string,
   sellerToken: string,
 ): Promise<{ secret: string; qr_payload: string }> {
@@ -70,28 +69,70 @@ export async function getSecret(
   return res.data;
 }
 
-export async function completeTrade(tradeId: string, buyerToken: string): Promise<void> {
+async function completeTrade(tradeId: string, buyerToken: string): Promise<void> {
   await http.post(`/trades/${tradeId}/complete`, {}, authHeaders(buyerToken));
 }
 
-export interface TradeHistoryItem {
-  id: string;
-  status: string;
-  amount_mxn: number;
-  platform_fee_mxn: number;
-  lock_tx_hash: string | null;
-  release_tx_hash: string | null;
-  created_at: string;
-  seller_id: string;
-  buyer_id: string;
-}
-
-export async function getTradeHistory(token: string): Promise<TradeHistoryItem[]> {
+async function getTradeHistory(token: string): Promise<TradeHistoryItem[]> {
   const res = await http.get('/trades/history', authHeaders(token));
   return res.data.trades;
 }
 
-export async function getAccountBalance(): Promise<{ xlm: string; address: string }> {
+async function getAccountBalance(): Promise<AccountBalance> {
   const res = await http.get('/account/balance');
   return res.data;
 }
+
+// Cash API
+async function getAgents(lat: number, lng: number, amount: number, limit = 10): Promise<AgentsResponse> {
+  const res = await http.get('/cash/agents', {
+    params: { lat, lng, amount, limit },
+    headers: { 'x-payment': 'demo' },
+  });
+  return res.data;
+}
+
+async function createCashRequest(
+  merchantAddress: string,
+  amountMxn: number,
+): Promise<CashRequestResponse> {
+  const res = await http.post(
+    '/cash/request',
+    { merchant_address: merchantAddress, amount_mxn: amountMxn },
+    { headers: { 'x-payment': 'demo' } },
+  );
+  return res.data;
+}
+
+async function getCashRequest(requestId: string): Promise<CashRequestResponse> {
+  const res = await http.get(`/cash/request/${requestId}`);
+  return res.data;
+}
+
+async function getCashRate(): Promise<RateResponse> {
+  const res = await http.get('/cash/rate');
+  return res.data;
+}
+
+export const api = {
+  user: {
+    register: registerUser,
+  },
+  trades: {
+    create: createTrade,
+    lock: lockTrade,
+    reveal: revealTrade,
+    getSecret,
+    complete: completeTrade,
+    getHistory: getTradeHistory,
+  },
+  account: {
+    getBalance: getAccountBalance,
+  },
+  cash: {
+    getAgents,
+    createRequest: createCashRequest,
+    getRequest: getCashRequest,
+    getRate: getCashRate,
+  },
+};

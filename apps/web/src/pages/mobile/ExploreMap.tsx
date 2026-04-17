@@ -1,4 +1,4 @@
-import MapSim from '../components/MapSim';
+import MapSim from '../../components/MapSim';
 
 interface ExploreMapProps {
     onBack: () => void;
