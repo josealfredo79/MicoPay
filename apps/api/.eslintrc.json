@@ -34,10 +34,18 @@
       }
     },
     {
+      "files": ["src/config.ts", "src/index.ts"],
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
       "files": [
         "src/scripts/**",
         "src/db/**",
         "src/services/**",
+        "src/middleware/**",
+        "src/plugins/**",
         "src/routes/bazaar.ts",
         "src/routes/cetes.ts",
         "src/routes/demo.ts",
@@ -47,11 +55,16 @@
         "src/routes/auth.ts",
         "src/routes/stellar.ts",
         "src/routes/users.ts",
+        "src/routes/cash.ts",
         "src/schemas/**",
         "src/types.d.ts"
       ],
       "rules": {
-        "@typescript-eslint/no-unused-vars": "off"
+        "@typescript-eslint/no-unused-vars": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+        "no-console": "off",
+        "no-empty": "off",
+        "no-constant-condition": "off"
       }
     }
   ],

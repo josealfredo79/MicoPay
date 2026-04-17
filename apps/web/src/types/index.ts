@@ -45,6 +45,8 @@ export interface Agent {
   usdc_rate: number;
   amount_usdc_needed: number;
   avatar_url?: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface CashRequestResponse {
