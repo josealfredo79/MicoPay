@@ -22,7 +22,7 @@ interface HomeProps {
 }
 
 const Home = ({ onNavigateCashout, onNavigateDeposit, walletAddress }: HomeProps) => {
-  const { wallet, balance, stellarAddress } = useWallet();
+  const { wallet, balance, stellarAddress, disconnect } = useWallet();
   const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
 
   useEffect(() => {
@@ -55,7 +55,14 @@ const Home = ({ onNavigateCashout, onNavigateDeposit, walletAddress }: HomeProps
       {/* TopAppBar */}
       <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-4 backdrop-blur-md bg-white/90">
         <Logo />
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={disconnect}
+            className="material-symbols-outlined text-outline p-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer"
+            title="Cerrar sesión"
+          >
+            logout
+          </button>
           <span className="material-symbols-outlined text-primary p-2 rounded-full hover:bg-surface-container-low transition-colors cursor-pointer">
             notifications
           </span>

@@ -85,7 +85,7 @@ async function getAccountBalance(): Promise<AccountBalance> {
 
 // Cash API
 async function getAgents(lat: number, lng: number, amount: number, limit = 10): Promise<AgentsResponse> {
-  const res = await http.get('/cash/agents', {
+  const res = await http.get('/api/v1/cash/agents', {
     params: { lat, lng, amount, limit },
     headers: { 'x-payment': 'demo' },
   });
@@ -97,7 +97,7 @@ async function createCashRequest(
   amountMxn: number,
 ): Promise<CashRequestResponse> {
   const res = await http.post(
-    '/cash/request',
+    '/api/v1/cash/request',
     { merchant_address: merchantAddress, amount_mxn: amountMxn },
     { headers: { 'x-payment': 'demo' } },
   );
@@ -105,12 +105,12 @@ async function createCashRequest(
 }
 
 async function getCashRequest(requestId: string): Promise<CashRequestResponse> {
-  const res = await http.get(`/cash/request/${requestId}`);
+  const res = await http.get(`/api/v1/cash/request/${requestId}`);
   return res.data;
 }
 
 async function getCashRate(): Promise<RateResponse> {
-  const res = await http.get('/cash/rate');
+  const res = await http.get('/api/v1/cash/rate');
   return res.data;
 }
 

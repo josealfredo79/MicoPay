@@ -20,12 +20,18 @@
   <header class="bg-gray-800 border-b border-gray-700 px-6 py-4">
     <div class="max-w-4xl mx-auto flex items-center justify-between">
       <div>
-        <h1 class="text-2xl font-bold text-green-400">MicoPay Demo</h1>
-        <p class="text-gray-400 text-sm">Conversational Cash Exchange</p>
+        <h1 class="text-2xl font-bold text-green-400">MicoPay</h1>
+        <p class="text-gray-400 text-sm">Convierte efectivo a digital</p>
       </div>
-      <div class="text-right">
-        <span id="api-status" class="text-yellow-400 text-sm">● Conectando...</span>
-        <p class="text-gray-500 text-xs">Simulated Telegram Bot</p>
+      <div class="flex items-center gap-4">
+        <a href="http://localhost:5185" target="_blank" class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2">
+          <span class="material-symbols-outlined text-lg">open_in_new</span>
+          Probar App
+        </a>
+        <div class="text-right">
+          <span id="api-status" class="text-green-400 text-sm">● En vivo</span>
+          <p class="text-gray-500 text-xs">Demo conversacional</p>
+        </div>
       </div>
     </div>
   </header>
@@ -35,16 +41,16 @@
     <!-- Info Cards -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-        <p class="text-gray-400 text-sm mb-1">Network</p>
-        <p class="text-xl font-bold text-blue-400">Stellar Testnet</p>
+        <p class="text-gray-400 text-sm mb-1">Red</p>
+        <p class="text-xl font-bold text-blue-400">Pruebas</p>
       </div>
       <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-        <p class="text-gray-400 text-sm mb-1">Rate</p>
-        <p class="text-xl font-bold text-green-400">1 USDC = $17.50 MXN</p>
+        <p class="text-gray-400 text-sm mb-1">Cambio</p>
+        <p class="text-xl font-bold text-green-400">$1 USD = $17.50 MXN</p>
       </div>
       <div class="bg-gray-800 rounded-xl p-4 border border-gray-700">
-        <p class="text-gray-400 text-sm mb-1">Payment</p>
-        <p class="text-xl font-bold text-purple-400">Mock x402</p>
+        <p class="text-gray-400 text-sm mb-1">Modo</p>
+        <p class="text-xl font-bold text-purple-400">Demo</p>
       </div>
     </div>
 
@@ -79,10 +85,11 @@
         <!-- Quick Actions -->
         <div class="flex flex-wrap gap-2 mt-3">
           <button onclick="quickCommand('/start')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/start</button>
-          <button onclick="quickCommand('/status')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/status</button>
-          <button onclick="quickCommand('/rate')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/rate</button>
-          <button onclick="quickCommand('/agents')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/agents</button>
-          <button onclick="quickCommand('/help')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/help</button>
+          <button onclick="quickCommand('/ayuda')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/ayuda</button>
+          <button onclick="quickCommand('/estado')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/estado</button>
+          <button onclick="quickCommand('/tasa')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/tasa</button>
+          <button onclick="quickCommand('/agentes')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/agentes</button>
+          <button onclick="quickCommand('/solicitar')" class="bg-gray-700 hover:bg-gray-600 px-3 py-1 rounded text-sm">/solicitar</button>
         </div>
       </div>
     </div>
@@ -153,107 +160,109 @@
 
       switch(command) {
         case '/start':
-          response = `👋 *Bienvenido a MicoPay*
+          response = `👋 *¡Bienvenido a MicoPay!*
 
-Convierte tus USDC en efectivo MXN de forma rápida y segura usando la red Stellar.
+Convierte tu dinero en efectivo de forma fácil y segura.
 
-*¿Qué puedo hacer?*
-• /help - Ver todos los comandos
-• /status - Estado del sistema  
-• /agents - Ver agentes disponibles
-• /rate - Ver tasa USDC/MXN
-• /request - Solicitar efectivo
+*¿Qué puedes hacer?*
+• /ayuda - Ver todas las opciones
+• /estado - Ver cómo funciona
+• /agentes - Ver puntos cercanos
+• /tasa - Ver tipo de cambio
+• /solicitar - Pedir efectivo
 
-¡Empieza a usar MicoPay hoy! 🚀`;
+💰 *Funcciona así:*
+1. Tus pesos se convierten a dólares digitales
+2. Un agente cercano te da el efectivo
+3. Sin necesidad de banco
+
+¡Pruébalo! 🚀`;
           apiData = { command: '/start' };
           break;
 
+        case '/ayuda':
         case '/help':
           response = `📚 *Ayuda*
 
-/start - Mensaje de bienvenida
-/status - Estado del sistema
-/agents - Lista de agentes
-/rate - Tasa de cambio
-/request - Solicitar efectivo
-/demo - Ver demo completo`;
-          apiData = { command: '/help' };
+/start - Bienvenida
+/estado - Cómo funciona
+/agentes - Puntos de retiro cerca de ti
+/tasa - Tipo de cambio actual
+/solicitar - Pedir efectivo`;
+          apiData = { command: '/ayuda' };
           break;
 
-        case '/status':
-          addMessage('⏳ Verificando estado del sistema...');
+        case '/estado':
+          addMessage('⏳ Verificando sistema...');
           try {
             const res = await fetch(API + '/health');
             apiData = await res.json();
-            response = `🟢 *Sistema Operativo*
+            response = `✅ *MicoPay está activo*
 
-*Servicio:* ${apiData.service}
-*Versión:* ${apiData.version}
-*Método de pago:* ${apiData.payment_method}
-*Red:* ${apiData.network}`;
+Todo funcionando correctamente.
+Podrás usar la app cuando esté lista.`;
           } catch (e) {
-            response = '❌ Error al conectar con el API. Asegúrate que el servidor esté corriendo.';
+            response = '❌ El servidor no responde. Intenta más tarde.';
             apiData = { error: e.message };
           }
           break;
 
+case '/tasa':
         case '/rate':
-        case '/rates':
-          addMessage('⏳ Obteniendo tasa de cambio...');
+          addMessage('⏳ Obteniendo tipo de cambio...');
           try {
             const res = await fetch(API + '/defi/cetes/rate');
             apiData = await res.json();
             response = `💱 *Tasa de Cambio*
 
-*1 USDC = $${apiData.cesPriceMxn * 17.5} MXN*
-*APY CETES: ${apiData.apy}%*
-*XLM/USDC: ${apiData.xlmPerUsdc}*
+*1 dólar = $${apiData.cesPriceMxn * 17.5} MXN*
+*Rendimiento CETES: ${apiData.apy}%*
 
-_Última actualización: ${new Date().toISOString()}_`;
+_Last update: ${new Date().toISOString()}_`;
           } catch (e) {
-            response = '❌ Error al obtener tasas. Usando datos simulados.\n\n💱 *Tasa de Cambio (Simulada)*\n\n*1 USDC = $17.50 MXN*';
+            response = '❌ Error al obtener tasas. Usando datos simulados.\n\n💱 *Tasa de Cambio (Simulada)*\n\n*1 dólar = $17.50 MXN*';
             apiData = cetesData;
           }
           break;
 
+        case '/agentes':
         case '/agents':
-          addMessage('⏳ Obteniendo agentes disponibles...');
-          response = `💵 *Agentes Disponibles* (${agents.length})
+          addMessage('⏳ Buscando puntos de retiro...');
+          response = `🏪 *Puntos de Retiro Cercanos* (${agents.length})
 
-*Tasa actual:* 1 USDC = $17.50 MXN
+*Tipo de cambio:* $1 USD = $17.50 MXN
 
-${agents.map((a, i) => `${i+1}. *${a.name}* ${a.online ? '🟢' : '🔴'}
+${agents.map((a, i) => `${i+1}. *${a.name}* ${a.online ? '✅' : '❌'}
    📍 ${a.address}
-   📏 ${a.distance_km} km
-   💰 Disponible: $${a.available_mxn} MXN
-   ⭐ Reputación: ${(a.reputation * 100).toFixed(0)}%
-   🏆 Tier: ${a.tier}`).join('\n\n')}
+   🚗 A ${a.distance_km} km
+   💵 Hasta: $${a.available_mxn.toLocaleString()} MXN
+   ⭐好评: ${(a.reputation * 100).toFixed(0)}%`).join('\n\n')}
 
-_Elige un agente para continuar_`;
+_Elige un punto para continuar_`;
           apiData = { agents };
           break;
 
         case '/demo':
+        case '/solicitar':
         case '/request':
-          response = `📋 *Solicitud de Efectivo*
+          response = `💰 *Solicitar Efectivo*
 
 *Cantidad:* $1,000 MXN
-*En USDC:* 57.14 USDC
-*Agente:* Farmacia Guadalupe
-*Comisión:* 0.5%
+*Equivalente:* 57.14 USD (dólares digitales)
+*Punto:* Farmacia Guadalupe
+*Comisión:* $5 MXN (0.5%)
 
-\`\`\`
-1. Paga 57.14 USDC a GDEMO...
-2. Recibirás $1,000 MXN
-3. Tiempo estimado: 5 minutos
-\`\`\`
+*¿Cómo funciona?*
+1. Tus pesos se convierten a dólares digitales
+2. El agente recibe el dinero en su cuenta
+3. Te da el efectivo en persona
 
-¿Confirmas la operación? (sí/no)`;
+¿Confirmas? (escribe "sí")`;
           apiData = { 
             amount_mxn: 1000,
             amount_usdc: 57.14,
             agent: 'Farmacia Guadalupe',
-            commission: 0.5
+            commission: 5
           };
           break;
 
@@ -263,7 +272,7 @@ _Elige un agente para continuar_`;
           response = `✅ *Operación Confirmada*
 
 Txn Hash: \`demo_txn_1234567890\`
-Monto: 57.14 USDC → $1,000 MXN
+Monto: 57.14 dólares → $1,000 MXN
 Estado: ✅ Completado
 
 ¡Gracias por usar MicoPay! 🎉`;
@@ -290,9 +299,33 @@ Usa /help para ver los comandos disponibles.`;
       if (e.key === 'Enter') sendMessage();
     }
 
-    // Check API status
-    async function checkApiStatus() {
-      const statusEl = document.getElementById('api-status');
+    // Initial welcome message
+    window.onload = function() {
+      addMessage(`👋 *¡Bienvenido a MicoPay!*
+
+Este es un *demo* para que veas cómo funcionaría el chat de Telegram.
+
+💰 *¿Qué hace MicoPay?*
+Convierte tu efectivo en dinero digital (y al revés) sin necesidad de banco.
+
+📱 *Prueba la App completa:*
+👉 http://localhost:5185
+
+Ahí puedes:
+- Crear tu cuenta fácil
+- Depositar efectivo en puntos cercanos
+- Convertir a efectivo
+- Invertir y ganar rendimientos
+- Y más...
+
+💬 *Usa los comandos de abajo* para probar el chat:
+/start - Comenzar
+/ayuda - Ver opciones
+/agentes - Ver puntos cerca de ti
+/tasa - Ver tipo de cambio`);
+      checkApiStatus();
+    };
+    const statusEl = document.getElementById('api-status');
       try {
         await fetch(API + '/health');
         statusEl.textContent = '● Conectado';
@@ -306,18 +339,18 @@ Usa /help para ver los comandos disponibles.`;
     // Initialize
     checkApiStatus();
     setTimeout(() => {
-      addMessage(`👋 *Bienvenido a MicoPay Demo!*
+      addMessage(`👋 *¡Hola! Soy MicoPay*
 
-Este es un bot simulado que muestra cómo funcionaría el servicio real.
+Soy un chat de demostración. Así se sentiría usar el bot de Telegram.
 
 *Prueba estos comandos:*
-• /start - Inicio
-• /status - Estado del sistema
-• /rate - Ver tasa actual
-• /agents - Ver agentes P2P
-• /demo - Ver demo de operación
+• /start - Comenzar
+• /ayuda - Ver todas las opciones
+• /agentes - Ver puntos de retiro cerca
+• /tasa - Ver tipo de cambio
+• /solicitar - Pedir efectivo
 
-Usa los botones de abajo o escribe directamente.`, false);
+O usa los botones de abajo.`, false);
     }, 500);
   </script>
 </body>

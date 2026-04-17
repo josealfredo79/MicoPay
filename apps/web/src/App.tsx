@@ -9,6 +9,7 @@ import DepositChat from "./pages/mobile/DepositChat";
 import SuccessScreen from "./pages/mobile/SuccessScreen";
 import CashoutRequest from "./pages/mobile/CashoutRequest";
 import Explore from "./pages/mobile/Explore";
+import Savings from "./pages/mobile/Savings";
 import DemoTerminal from "./components/demo/DemoTerminal";
 import ServiceCatalog from "./components/demo/ServiceCatalog";
 import ReputationPanel from "./components/demo/ReputationPanel";
@@ -66,6 +67,11 @@ export default function App() {
       <Route path="/explore" element={
         <ProtectedRoute>
           <ExplorePageWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/savings" element={
+        <ProtectedRoute>
+          <SavingsWrapper />
         </ProtectedRoute>
       } />
       
@@ -204,6 +210,11 @@ function CashoutRequestWrapper() {
 function ExplorePageWrapper() {
   const navigate = useNavigate();
   return <Explore onBack={() => navigate(-1)} />;
+}
+
+function SavingsWrapper() {
+  const navigate = useNavigate();
+  return <Savings onBack={() => navigate(-1)} />;
 }
 
 // Legacy pages for tabs

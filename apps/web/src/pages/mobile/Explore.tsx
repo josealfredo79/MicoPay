@@ -1,10 +1,12 @@
 import { Logo } from '../../components/layout/Logo';
+import { useNavigate } from 'react-router-dom';
 
 interface ExploreProps {
     onBack?: () => void;
 }
 
 const Explore = ({ onBack }: ExploreProps) => {
+    const navigate = useNavigate();
     return (
         <div className="bg-surface text-on-surface font-body min-h-screen flex flex-col pb-32">
             {/* Header */}
@@ -44,7 +46,9 @@ const Explore = ({ onBack }: ExploreProps) => {
                         <p className="text-sm text-on-surface-variant leading-relaxed mb-6">
                             Regístrate y empieza a ganar **11.45% anual** con Cetes tokenizados. Tu dinero trabaja por ti con el respaldo del Gobierno de México.
                         </p>
-                        <button className="w-full bg-primary text-white font-bold py-3 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+                        <button 
+                            onClick={() => navigate('/savings')}
+                            className="w-full bg-primary text-white font-bold py-3 px-6 rounded-2xl flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
                             Empezar a ahorrar
                             <span className="material-symbols-outlined text-sm">arrow_forward</span>
                         </button>

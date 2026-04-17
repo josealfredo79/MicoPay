@@ -1,14 +1,65 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 
 interface DepositQRProps {
     onBack: () => void;
     onChat: () => void;
     onSuccess: () => void;
+    amountMxn?: number;
+    agentName?: string;
+    agentAddress?: string;
 }
 
-const DepositQR = ({ onBack, onChat, onSuccess }: DepositQRProps) => {
+interface QRPayload {
+    type: 'micopay_deposit';
+    amount: number;
+    currency: 'MXN';
+    userId: string;
+    timestamp: number;
+    depositId: string;
+}
+
+const DepositQR = ({ 
+    onBack, 
+    onChat, 
+    onSuccess, 
+    amountMxn = 500, 
+    agentName = 'Tienda Don Pepe',
+    agentAddress = 'Av. Álvaro Obregón 120, Roma Norte, CDMX'
+}: DepositQRProps) => {
     const [pin, setPin] = useState<string>('');
     const [isConfirming, setIsConfirming] = useState(false);
+    const [qrDataUrl, setQrDataUrl] = useState<string>('');
+    const [depositId] = useState<string>(`DEP-${Date.now().toString(36).toUpperCase()}`);
+
+    useEffect(() => {
+        const generateQR = async () => {
+            const payload: QRPayload = {
+                type: 'micopay_deposit',
+                amount: amountMxn,
+                currency: 'MXN',
+                userId: 'user_demo',
+                timestamp: Date.now(),
+                depositId: depositId
+            };
+            
+            try {
+                const qrUrl = await QRCode.toDataURL(JSON.stringify(payload), {
+                    width: 200,
+                    margin: 2,
+                    color: {
+                        dark: '#00694C',
+                        light: '#FFFFFF'
+                    }
+                });
+                setQrDataUrl(qrUrl);
+            } catch (err) {
+                console.error('Failed to generate QR:', err);
+            }
+        };
+        
+        generateQR();
+    }, [amountMxn, depositId]);
 
     const handlePinClick = (num: string) => {
         if (pin.length < 4) {
@@ -27,6 +78,11 @@ const DepositQR = ({ onBack, onChat, onSuccess }: DepositQRProps) => {
         setPin(pin.slice(0, -1));
     };
 
+    const handleReset = () => {
+        setPin('');
+        setIsConfirming(false);
+    };
+
     return (
         <div className="bg-surface font-body text-on-surface min-h-screen flex flex-col">
             {/* TopAppBar */}
@@ -37,7 +93,7 @@ const DepositQR = ({ onBack, onChat, onSuccess }: DepositQRProps) => {
                     </button>
                     <div className="flex flex-col">
                         <div className="flex items-center gap-1">
-                            <h1 className="font-headline font-bold text-xl text-[#0B1E26]">Tienda Don Pepe</h1>
+                            <h1 className="font-headline font-bold text-xl text-[#0B1E26]">{agentName}</h1>
                             <span className="material-symbols-outlined text-[#00694C] text-[18px]" style={{ fontVariationSettings: '"FILL" 1' }}>verified</span>
                         </div>
                         <span className="text-[10px] tracking-wide uppercase font-semibold text-primary">Agente Autorizado</span>
@@ -75,7 +131,7 @@ const DepositQR = ({ onBack, onChat, onSuccess }: DepositQRProps) => {
                             </div>
                             <div className="flex-1">
                                 <p className="text-sm font-medium text-on-surface-variant leading-snug">
-                                    <span className="font-bold text-on-surface">Tienda Don Pepe:</span> Hola Juan, ya recibí tu solicitud. te comparto la ubicación, Av. Leones 32.
+                                    <span className="font-bold text-on-surface">{agentName}:</span> Hola Juan, ya recibí tu solicitud. Te comparto la ubicación, {agentAddress}.
                                 </p>
                             </div>
                         </div>
@@ -98,19 +154,28 @@ const DepositQR = ({ onBack, onChat, onSuccess }: DepositQRProps) => {
                 {/* QR Content Card */}
                 <div className="bg-surface-container-low rounded-[32px] p-8 flex flex-col items-center space-y-6 shadow-[0px_32px_32px_rgba(11,30,38,0.04)]">
                     <div className="bg-white p-6 rounded-2xl shadow-sm border border-outline-variant/20">
-                        <img 
-                            alt="QR Code" 
-                            className="w-48 h-48" 
-                            src="https://lh3.googleusercontent.com/aida/ADBb0uiC4aumVX9b9_8EmaEY8cUXAiLnd8nTUFBI5mmLaPtMT3Clyhlnx0gH5SJ6Uj5VFZY0Sr8ws-esCWamCmWmfHoLXVuxzM4bhUTbxi-B54COrpyDslbaq5D1WXUJC-uBsG4aOoYcWhaIOQ_l6y11PbO3csV4TeweeHBGVvYt_RVlDPMWI7MEJQzUn67vmoW9Vs2vfWqZieZanDJZspbHwmIGca0ZjTvSQJXQF-e280fi32GIZ6Wwypi8ULwoObokwnr02p-rf_buYsI" 
-                        />
+                        {qrDataUrl ? (
+                            <img 
+                                alt="QR Code" 
+                                className="w-48 h-48" 
+                                src={qrDataUrl}
+                            />
+                        ) : (
+                            <div className="w-48 h-48 bg-gray-100 animate-pulse rounded-lg flex items-center justify-center">
+                                <span className="material-symbols-outlined text-gray-400">qr_code</span>
+                            </div>
+                        )}
                     </div>
                     <div className="text-center space-y-2">
                         <p className="font-bold text-[11px] tracking-[0.15em] text-primary uppercase">MUESTRA ESTE CÓDIGO AL AGENTE</p>
                         <div className="pt-4 space-y-1">
                             <h2 className="font-headline font-extrabold text-lg text-on-surface">Juan Pérez · @juanp</h2>
-                            <p className="font-headline font-bold text-3xl text-primary">$500 MXN <span className="text-sm font-medium text-on-surface/60">a depositar</span></p>
+                            <p className="font-headline font-bold text-3xl text-primary">${amountMxn} MXN <span className="text-sm font-medium text-on-surface/60">a depositar</span></p>
                         </div>
                     </div>
+                    <p className="text-xs text-on-surface-variant font-mono bg-surface-container-low px-3 py-1 rounded">
+                        ID: {depositId}
+                    </p>
                 </div>
 
                 {/* Info */}
@@ -137,36 +202,38 @@ const DepositQR = ({ onBack, onChat, onSuccess }: DepositQRProps) => {
 
                     {!isConfirming ? (
                         <div className="grid grid-cols-3 gap-y-4 gap-x-8 max-w-[280px] mx-auto pb-10">
-                            {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((num) => (
-                                <button 
-                                    key={num}
-                                    onClick={() => handlePinClick(num)}
-                                    className="h-16 w-16 flex items-center justify-center text-2xl font-bold text-on-surface hover:bg-surface-container-low rounded-full transition-all active:scale-90"
+                            {['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', 'del'].map((key) => (
+                                <button
+                                    key={key}
+                                    onClick={() => {
+                                        if (key === 'del') {
+                                            handleBackspace();
+                                        } else if (key !== '') {
+                                            handlePinClick(key);
+                                        }
+                                    }}
+                                    disabled={key === ''}
+                                    className={`
+                                        h-14 rounded-xl text-xl font-bold transition-all active:scale-95
+                                        ${key === '' ? 'invisible' : ''}
+                                        ${key === 'del' ? 'text-error bg-error/10' : 'bg-surface-container-low text-on-surface'}
+                                        ${key !== '' && key !== 'del' ? 'hover:bg-primary/10' : ''}
+                                        disabled:opacity-0
+                                    `}
                                 >
-                                    {num}
+                                    {key === 'del' ? (
+                                        <span className="material-symbols-outlined">backspace</span>
+                                    ) : key}
                                 </button>
                             ))}
-                            <div className="h-16 w-16"></div>
-                            <button 
-                                onClick={() => handlePinClick('0')}
-                                className="h-16 w-16 flex items-center justify-center text-2xl font-bold text-on-surface hover:bg-surface-container-low rounded-full transition-all active:scale-90"
-                            >
-                                0
-                            </button>
-                            <button 
-                                onClick={handleBackspace}
-                                className="h-16 w-16 flex items-center justify-center text-on-surface hover:bg-surface-container-low rounded-full transition-all active:scale-90"
-                            >
-                                <span className="material-symbols-outlined text-2xl">backspace</span>
-                            </button>
                         </div>
                     ) : (
-                        <div className="mt-10 flex flex-col items-center gap-3 pb-20">
-                            <div className="relative w-8 h-8">
-                                <div className="absolute inset-0 border-4 border-surface-container-high rounded-full"></div>
-                                <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                        <div className="py-8">
+                            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <span className="material-symbols-outlined text-primary text-4xl animate-spin">sync</span>
                             </div>
-                            <p className="text-sm font-medium text-outline">Esperando acreditación...</p>
+                            <p className="font-bold text-primary">Confirmando depósito...</p>
+                            <p className="text-sm text-on-surface-variant mt-2">Espera mientras procesamos tu transacción</p>
                         </div>
                     )}
                 </div>
