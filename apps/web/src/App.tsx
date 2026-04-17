@@ -1,4 +1,6 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
+import { useWallet } from "./contexts/AuthContext";
+import { LoginScreen } from "./pages/LoginScreen";
 import Home from "./pages/mobile/Home";
 import DepositMap from "./pages/mobile/DepositMap";
 import DepositRequest from "./pages/mobile/DepositRequest";
@@ -16,17 +18,56 @@ import FundWidget from "./components/demo/FundWidget";
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 export default function App() {
+  const { wallet, isLoading } = useWallet();
+
   return (
     <Routes>
-      {/* Mobile App Routes */}
-      <Route path="/" element={<HomeWrapper />} />
-      <Route path="/deposit/map" element={<DepositMapWrapper />} />
-      <Route path="/deposit/request" element={<DepositRequestWrapper />} />
-      <Route path="/deposit/qr" element={<DepositQRWrapper />} />
-      <Route path="/deposit/chat" element={<DepositChatWrapper />} />
-      <Route path="/success" element={<SuccessScreenWrapper />} />
-      <Route path="/cashout" element={<CashoutRequestWrapper />} />
-      <Route path="/explore" element={<ExplorePageWrapper />} />
+      {/* Public Routes */}
+      <Route path="/login" element={
+        wallet ? <NavigateToHome /> : <LoginScreenWrapper />
+      } />
+
+      {/* Protected Mobile Routes */}
+      <Route path="/" element={
+        <ProtectedRoute>
+          <HomeWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/deposit/map" element={
+        <ProtectedRoute>
+          <DepositMapWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/deposit/request" element={
+        <ProtectedRoute>
+          <DepositRequestWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/deposit/qr" element={
+        <ProtectedRoute>
+          <DepositQRWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/deposit/chat" element={
+        <ProtectedRoute>
+          <DepositChatWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/success" element={
+        <ProtectedRoute>
+          <SuccessScreenWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/cashout" element={
+        <ProtectedRoute>
+          <CashoutRequestWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/explore" element={
+        <ProtectedRoute>
+          <ExplorePageWrapper />
+        </ProtectedRoute>
+      } />
       
       {/* Legacy Tabs (for demo) */}
       <Route path="/demo" element={<DemoPage />} />
@@ -38,15 +79,50 @@ export default function App() {
   );
 }
 
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { wallet, isLoading } = useWallet();
+  const navigate = useNavigate();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-on-surface-variant">Cargando wallet...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!wallet) {
+    navigate('/login');
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
+function LoginScreenWrapper() {
+  const navigate = useNavigate();
+  return <LoginScreen onSuccess={() => navigate('/')} />;
+}
+
+function NavigateToHome() {
+  const navigate = useNavigate();
+  navigate('/');
+  return null;
+}
+
 // Wrappers that handle navigation
 
 function HomeWrapper() {
   const navigate = useNavigate();
+  const { wallet, publicKey } = useWallet();
   return (
     <Home 
       onNavigateCashout={() => navigate('/cashout')}
       onNavigateDeposit={() => navigate('/deposit/map')}
-      token={null}
+      walletAddress={publicKey}
     />
   );
 }

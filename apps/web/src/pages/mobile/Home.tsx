@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Logo } from '../../components/layout/Logo';
+import { useWallet } from '../../contexts/AuthContext';
 import { api } from '../../services/api';
 import type { TradeHistoryItem } from '../../types';
 
@@ -17,34 +18,35 @@ const STATUS_LABEL: Record<string, { label: string; color: string }> = {
 interface HomeProps {
   onNavigateCashout: () => void;
   onNavigateDeposit: () => void;
-  token: string | null;
+  walletAddress?: string | null;
 }
 
-const Home = ({ onNavigateCashout, onNavigateDeposit, token }: HomeProps) => {
+const Home = ({ onNavigateCashout, onNavigateDeposit, walletAddress }: HomeProps) => {
+  const { wallet, balance, stellarAddress } = useWallet();
   const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
-  const [xlmBalance, setXlmBalance] = useState<string | null>(null);
-  const [stellarAddress, setStellarAddress] = useState<string>('');
 
   useEffect(() => {
     api.account.getBalance()
       .then(({ xlm, address }) => {
-        setXlmBalance(parseFloat(xlm).toLocaleString('es-MX', { maximumFractionDigits: 2 }));
-        setStellarAddress(address);
+        console.log('Balance:', xlm, address);
       })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!token) return;
-    api.trades.getHistory(token)
-      .then(setTrades)
-      .catch(() => {});
-  }, [token]);
+    if (stellarAddress) {
+      api.trades.getHistory(stellarAddress)
+        .then(setTrades)
+        .catch(() => {});
+    }
+  }, [stellarAddress]);
 
-  // Convert XLM to approx MXN (1 XLM ≈ 20 MXN, demo rate)
+  const xlmBalance = balance;
+  const address = stellarAddress || walletAddress || '';
+  
   const mxnBalance = xlmBalance
-    ? (parseFloat(xlmBalance.replace(/,/g, '')) * 20).toLocaleString('es-MX', { maximumFractionDigits: 2 })
-    : '—';
+    ? (parseFloat(xlmBalance) * 20).toLocaleString('es-MX', { maximumFractionDigits: 2 })
+    : '0.00';
 
   const today = new Date().toLocaleDateString('es-MX', { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -71,7 +73,7 @@ const Home = ({ onNavigateCashout, onNavigateDeposit, token }: HomeProps) => {
         {/* Saludo */}
         <section className="mb-8">
           <h1 className="font-headline font-extrabold text-3xl text-on-surface leading-tight mb-1">
-            Hola, Juan 👋
+            Hola, {wallet?.email?.split('@')[0] || 'Usuario'} 👋
           </h1>
           <p className="text-on-surface-variant font-medium opacity-70 capitalize">{today}</p>
         </section>
@@ -100,7 +102,7 @@ const Home = ({ onNavigateCashout, onNavigateDeposit, token }: HomeProps) => {
             <div className="flex items-center gap-2 mt-1">
               <span className="w-2.5 h-2.5 rounded-full bg-[#5DCAA5] animate-pulse shadow-[0_0_8px_#5DCAA5]"></span>
               <p className="text-[#5DCAA5] text-sm font-bold">
-                {xlmBalance ? `${xlmBalance} XLM · Testnet` : 'Cargando balance…'}
+                {xlmBalance ? `${parseFloat(xlmBalance).toFixed(2)} XLM · Testnet` : 'Cargando balance…'}
               </p>
             </div>
           </div>
@@ -118,7 +120,7 @@ const Home = ({ onNavigateCashout, onNavigateDeposit, token }: HomeProps) => {
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-on-surface text-sm">Stellar Lumens</p>
                 <p className="text-[11px] text-outline truncate font-mono">
-                  {stellarAddress ? `${stellarAddress.substring(0, 8)}…${stellarAddress.slice(-6)}` : '—'}
+                  {address ? `${address.substring(0, 8)}…${address.slice(-6)}` : '—'}
                 </p>
               </div>
               <div className="text-right">
