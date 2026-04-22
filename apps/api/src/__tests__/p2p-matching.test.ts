@@ -67,7 +67,7 @@ describe('P2P Matching Engine', () => {
       expect(merchants.length).toBeGreaterThan(0);
       merchants.forEach(m => {
         expect(m.stellar_address).toBeDefined();
-        expect(m.stellar_address.length).toBeGreaterThanOrEqual(50);
+        expect(m.stellar_address).toMatch(/^G[A-Z0-9]+$/);
         expect(m.score).toBeGreaterThan(0);
         expect(m.distance_km).toBeGreaterThanOrEqual(0);
       });

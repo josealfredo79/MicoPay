@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../services/api';
+import type { CashRequestResponse } from '../types';
 
 export interface CashRequest {
   request_id: string;
@@ -12,6 +13,21 @@ export interface CashRequest {
   htlc_tx_hash: string;
   created_at: string;
   expires_at: string;
+}
+
+function mapToCashRequest(resp: CashRequestResponse): CashRequest {
+  return {
+    request_id: resp.request_id,
+    merchant_address: resp.merchant?.stellar_address || resp.merchant_address || '',
+    merchant_name: resp.merchant?.name || resp.merchant_name || '',
+    amount_mxn: resp.exchange?.amount_mxn || resp.amount_mxn_value || 0,
+    amount_usdc: resp.exchange?.amount_usdc || resp.amount_usdc_value || '0',
+    status: resp.status as 'pending' | 'accepted' | 'completed' | 'expired',
+    qr_payload: resp.qr_payload,
+    htlc_tx_hash: resp.exchange?.htlc_tx_hash || resp.htlc_tx_hash || '',
+    created_at: resp.created_at || new Date().toISOString(),
+    expires_at: resp.expires_at,
+  };
 }
 
 interface UseCashRequestReturn {
@@ -33,8 +49,9 @@ export function useCashRequest(): UseCashRequestReturn {
       setError(null);
       try {
         const result = await api.cash.createRequest(merchantAddress, amountMxn);
-        setRequest(result);
-        return result;
+        const mapped = mapToCashRequest(result);
+        setRequest(mapped);
+        return mapped;
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Error creando solicitud';
         setError(message);
@@ -50,7 +67,7 @@ export function useCashRequest(): UseCashRequestReturn {
     if (!request?.request_id) return;
     try {
       const updated = await api.cash.getRequest(request.request_id);
-      setRequest(updated);
+      setRequest(mapToCashRequest(updated));
     } catch (err) {
       console.error('Failed to poll status:', err);
     }

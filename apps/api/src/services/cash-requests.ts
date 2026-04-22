@@ -6,6 +6,7 @@ export interface CashRequest {
   merchant_name: string;
   amount_mxn: number;
   amount_usdc: string;
+  htlc_secret: string | null;
   htlc_secret_hash: string;
   htlc_tx_hash: string;
   status: 'pending' | 'accepted' | 'completed' | 'expired';
@@ -23,6 +24,7 @@ export async function initCashRequestsTable(): Promise<void> {
       merchant_name VARCHAR(255) NOT NULL,
       amount_mxn INTEGER NOT NULL,
       amount_usdc VARCHAR(20) NOT NULL,
+      htlc_secret VARCHAR(64),
       htlc_secret_hash VARCHAR(64) NOT NULL,
       htlc_tx_hash VARCHAR(64) NOT NULL,
       status VARCHAR(20) NOT NULL DEFAULT 'pending',
@@ -33,6 +35,14 @@ export async function initCashRequestsTable(): Promise<void> {
       updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
     )
   `);
+
+  await query(`
+    ALTER TABLE cash_requests ADD COLUMN IF NOT EXISTS htlc_secret VARCHAR(64)
+  `).catch(() => {});
+
+  await query(`
+    ALTER TABLE cash_requests ADD COLUMN IF NOT EXISTS htlc_secret_hash VARCHAR(64)
+  `).catch(() => {});
 
   await query(`
     CREATE INDEX IF NOT EXISTS idx_cash_requests_status ON cash_requests(status)
@@ -51,14 +61,15 @@ export async function createCashRequest(request: CashRequest): Promise<CashReque
   await query(
     `INSERT INTO cash_requests 
      (request_id, merchant_address, merchant_name, amount_mxn, amount_usdc, 
-      htlc_secret_hash, htlc_tx_hash, status, created_at, expires_at, qr_payload, payer_address)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
+      htlc_secret, htlc_secret_hash, htlc_tx_hash, status, created_at, expires_at, qr_payload, payer_address)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
     [
       request.request_id,
       request.merchant_address,
       request.merchant_name,
       request.amount_mxn,
       request.amount_usdc,
+      request.htlc_secret ?? null,
       request.htlc_secret_hash,
       request.htlc_tx_hash,
       request.status,
@@ -123,4 +134,12 @@ export async function getExpiredCashRequests(): Promise<CashRequest[]> {
     `SELECT * FROM cash_requests 
      WHERE status = 'pending' AND expires_at <= NOW()`
   );
+}
+
+export async function getSecretByRequestId(requestId: string): Promise<string | null> {
+  const row = await getOne<{ htlc_secret: string }>(
+    'SELECT htlc_secret FROM cash_requests WHERE request_id = $1',
+    [requestId]
+  );
+  return row?.htlc_secret ?? null;
 }

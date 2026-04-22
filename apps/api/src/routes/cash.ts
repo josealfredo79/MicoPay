@@ -3,8 +3,9 @@ import { requirePayment } from "../middleware/x402.js";
 import { randomUUID, randomBytes, createHash } from "crypto";
 import { getTopProviders, getScoredMerchantsFromDB, getMerchantFromDB, MERCHANTS_DATA } from "../services/p2p.js";
 import { getUsdcMxnRate, getCachedRateInfo } from "../services/exchange-rate.js";
-import { lockEscrow, EscrowLockError } from "../services/escrow.js";
-import { createCashRequest, getCashRequest } from "../services/cash-requests.js";
+import { lockEscrow, releaseEscrow, refundEscrow, getTrade, EscrowLockError, getSecretByRequestId } from "../services/escrow.js";
+import { createCashRequest, getCashRequest, updateCashRequestStatus } from "../services/cash-requests.js";
+import { notify } from "../services/notifications.js";
 import { validateOrThrow, cashAgentsQuerySchema, cashRequestSchema, ValidationError } from "../schemas/validation.js";
 import { config } from "../config.js";
 
@@ -69,6 +70,8 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
             name: p.name,
             type: p.type,
             address: p.address,
+            latitude: p.lat,
+            longitude: p.lng,
             distance_km: p.distance_km,
             available_mxn: p.available_mxn,
             max_trade_mxn: p.max_trade_mxn,
@@ -95,6 +98,8 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
           name: p.name,
           type: p.type,
           address: p.address,
+          latitude: p.lat,
+          longitude: p.lng,
           distance_km: p.distance_km,
           available_mxn: p.available_mxn,
           max_trade_mxn: p.max_trade_mxn,
@@ -211,7 +216,9 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
         });
       }
 
-      const qrPayload = `micopay://claim?request_id=${requestId}&secret=${secret}&amount_mxn=${amountMxn}&contract=${config.escrowContractId}`;
+      // The QR contains ONLY the request_id — the secret is never exposed
+      // Merchant scans QR → backend receives scan → verifies cash given → releases funds
+      const qrPayload = `micopay://claim?request_id=${requestId}&merchant=${merchantAddress}&amount_mxn=${amountMxn}`;
 
       const cashRequest = {
         request_id: requestId,
@@ -219,6 +226,7 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
         merchant_name: merchant.name,
         amount_mxn: amountMxn,
         amount_usdc: amountUsdc.toFixed(4),
+        htlc_secret: secret,
         htlc_secret_hash: secretHash,
         htlc_tx_hash: htlcTxHash,
         status: "pending" as const,
@@ -229,6 +237,17 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
       };
 
       await createCashRequest(cashRequest);
+
+      notify("cash_request", {
+        request_id: requestId,
+        merchant_address: merchantAddress,
+        merchant_name: merchant.name,
+        amount_mxn: amountMxn,
+        amount_usdc: amountUsdc.toFixed(4),
+        htlc_tx_hash: htlcTxHash,
+        claim_url: `${CLAIM_BASE_URL}/claim/${requestId}`,
+        payer_address: request.payerAddress,
+      });
 
       fastify.log.info(
         `Cash request ${requestId}: ${request.payerAddress} → ${merchant.name} $${amountMxn} MXN`
@@ -280,6 +299,97 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
   });
 
   /**
+   * POST /api/v1/cash/release
+   * FREE — Release funds to buyer by presenting the secret preimage
+   *
+   * Body:
+   *   trade_id — the HTLC trade ID
+   *   secret    — the secret preimage
+   */
+  fastify.post("/api/v1/cash/release", async (request, reply) => {
+    const { trade_id, secret } = request.body as { trade_id: string; secret: string };
+
+    if (!trade_id || !secret) {
+      return reply.status(400).send({ error: "trade_id and secret are required" });
+    }
+
+    try {
+      const txHash = await releaseEscrow(trade_id, secret);
+      return reply.send({
+        status: "released",
+        tx_hash: txHash,
+        explorer_url: `https://stellar.expert/explorer/testnet/tx/${txHash}`,
+      });
+    } catch (err) {
+      fastify.log.error({ err, trade_id }, "Failed to release escrow");
+      return reply.status(500).send({
+        error: "Release failed",
+        message: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * POST /api/v1/cash/refund
+   * FREE — Refund seller after timeout
+   *
+   * Body:
+   *   trade_id — the HTLC trade ID
+   */
+  fastify.post("/api/v1/cash/refund", async (request, reply) => {
+    const { trade_id } = request.body as { trade_id: string };
+
+    if (!trade_id) {
+      return reply.status(400).send({ error: "trade_id is required" });
+    }
+
+    try {
+      const txHash = await refundEscrow(trade_id);
+      return reply.send({
+        status: "refunded",
+        tx_hash: txHash,
+        explorer_url: `https://stellar.expert/explorer/testnet/tx/${txHash}`,
+      });
+    } catch (err) {
+      fastify.log.error({ err, trade_id }, "Failed to refund escrow");
+      return reply.status(500).send({
+        error: "Refund failed",
+        message: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+  });
+
+  /**
+   * GET /api/v1/cash/trade/:id
+   * FREE — Get trade state from the escrow contract
+   */
+  fastify.get("/api/v1/cash/trade/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+
+    const trade = await getTrade(id);
+    if (!trade) {
+      return reply.status(404).send({ error: "Trade not found" });
+    }
+
+    const statusMap: Record<string, string> = {
+      "0": "unknown",
+      "1": "locked",
+      "2": "released",
+      "3": "refunded",
+    };
+
+    return reply.send({
+      trade_id: id,
+      seller: trade.seller,
+      buyer: trade.buyer,
+      amount: parseFloat(trade.amount) / 10_000_000,
+      platform_fee: parseFloat(trade.platform_fee) / 10_000_000,
+      status: statusMap[trade.status] ?? "unknown",
+      timeout_ledger: trade.timeout_ledger,
+    });
+  });
+
+  /**
    * GET /api/v1/cash/rate
    * FREE — get current USDC/MXN exchange rate from oracle
    */
@@ -293,6 +403,71 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
       source: info?.source ?? "coingecko",
       age_seconds: info ? Math.round((Date.now() - info.age_ms) / 1000) : null,
       timestamp: new Date().toISOString(),
+    });
+  });
+
+  /**
+   * POST /api/v1/cash/scan
+   * Merchant scans a QR and confirms cash was given.
+   * Releases HTLC funds to the merchant after on-chain verification.
+   *
+   * Body:
+   *   request_id — from the QR code
+   *   merchant_stellar_address — to verify merchant identity
+   */
+  fastify.post("/api/v1/cash/scan", async (request, reply) => {
+    const { request_id, merchant_stellar_address } = request.body as {
+      request_id: string;
+      merchant_stellar_address: string;
+    };
+
+    if (!request_id || !merchant_stellar_address) {
+      return reply.status(400).send({ error: "request_id and merchant_stellar_address required" });
+    }
+
+    const cashReq = await getCashRequest(request_id);
+    if (!cashReq) {
+      return reply.status(404).send({ error: "Request not found" });
+    }
+
+    if (cashReq.status === "completed") {
+      return reply.status(409).send({ error: "Request already completed" });
+    }
+
+    if (cashReq.status === "expired") {
+      return reply.status(410).send({ error: "Request expired" });
+    }
+
+    if (cashReq.merchant_address !== merchant_stellar_address) {
+      return reply.status(403).send({ error: "Merchant address mismatch" });
+    }
+
+    const secret = await getSecretByRequestId(request_id);
+    if (!secret) {
+      return reply.status(500).send({ error: "Secret not found, contact support" });
+    }
+
+    const secretHash = createHash("sha256").update(Buffer.from(secret, "hex")).digest("hex");
+    const tradeIdBytes = secretHash;
+
+    let releaseTxHash: string;
+    try {
+      releaseTxHash = await releaseEscrow(tradeIdBytes, secret);
+      await updateCashRequestStatus(request_id, "completed");
+      fastify.log.info(`Released funds for request ${request_id}: ${releaseTxHash}`);
+    } catch (err) {
+      fastify.log.error({ err, request_id }, "Failed to release escrow");
+      return reply.status(500).send({
+        error: "Release failed",
+        message: err instanceof Error ? err.message : "Unknown error",
+      });
+    }
+
+    return reply.send({
+      status: "completed",
+      amount_mxn: cashReq.amount_mxn,
+      release_tx_hash: releaseTxHash,
+      explorer_url: `https://stellar.expert/explorer/testnet/tx/${releaseTxHash}`,
     });
   });
 }

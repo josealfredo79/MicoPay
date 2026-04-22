@@ -16,7 +16,75 @@ async function ensureX402Initialized() {
   }
 }
 
-const useDatabase = false;
+const useDatabase = !!process.env.DATABASE_URL && process.env.DATABASE_URL !== "";
+
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const USED_TX_FILE = path.join(__dirname, "../../data/used_txs.json");
+
+interface UsedTxStore {
+  txs: Record<string, { payer: string; expires_at: number }>;
+}
+
+function loadTxStore(): UsedTxStore {
+  try {
+    if (fs.existsSync(USED_TX_FILE)) {
+      const data = fs.readFileSync(USED_TX_FILE, "utf8");
+      return JSON.parse(data);
+    }
+  } catch {
+    // ignore
+  }
+  return { txs: {} };
+}
+
+function saveTxStore(store: UsedTxStore): void {
+  const dir = path.dirname(USED_TX_FILE);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  fs.writeFileSync(USED_TX_FILE, JSON.stringify(store, null, 2));
+}
+
+function isTxUsedInFile(txHash: string): boolean {
+  const store = loadTxStore();
+  const entry = store.txs[txHash];
+  if (!entry) return false;
+  if (Date.now() > entry.expires_at) {
+    delete store.txs[txHash];
+    saveTxStore(store);
+    return false;
+  }
+  return true;
+}
+
+function markTxUsedInFile(txHash: string, payer: string): void {
+  const store = loadTxStore();
+  store.txs[txHash] = { payer, expires_at: Date.now() + 5 * 60 * 1000 };
+  saveTxStore(store);
+}
+
+function cleanupExpiredInFile(): number {
+  const store = loadTxStore();
+  const now = Date.now();
+  let cleaned = 0;
+  for (const [hash, entry] of Object.entries(store.txs)) {
+    if (now > entry.expires_at) {
+      delete store.txs[hash];
+      cleaned++;
+    }
+  }
+  if (cleaned > 0) {
+    saveTxStore(store);
+  }
+  return cleaned;
+}
+
+cleanupExpiredInFile();
 
 function getPlatformAddress(): string {
   const secret = process.env.PLATFORM_SECRET_KEY;
@@ -132,10 +200,10 @@ async function verifyPayment(xdrBase64: string, minAmountUsdc: string, service: 
       if (alreadyUsed) {
         throw new Error(`Payment already used: ${txHash.slice(0, 16)}...`);
       }
-    } else {
-      if (usedTxHashes.has(txHash)) {
-        throw new Error(`Payment already used: ${txHash.slice(0, 16)}...`);
-      }
+    } else if (isTxUsedInFile(txHash)) {
+      throw new Error(`Payment already used: ${txHash.slice(0, 16)}...`);
+    } else if (usedTxHashes.has(txHash)) {
+      throw new Error(`Payment already used: ${txHash.slice(0, 16)}...`);
     }
 
     let foundPayment = false;
@@ -164,6 +232,7 @@ async function verifyPayment(xdrBase64: string, minAmountUsdc: string, service: 
       await markPaymentUsed(txHash, payer, minAmountUsdc, service);
     } else {
       usedTxHashes.add(txHash);
+      markTxUsedInFile(txHash, payer);
     }
 
     return payer;

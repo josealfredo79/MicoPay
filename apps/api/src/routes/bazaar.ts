@@ -401,7 +401,7 @@ export async function bazaarRoutes(fastify: FastifyInstance): Promise<void> {
       const secretHash = validated.secret_hash
         ?? createHash("sha256").update(randomBytes(32)).digest("hex");
 
-      let quotes = [];
+      let quotes: Array<{ id: string; rate: number; from_agent: string }> = [];
       try {
         quotes = await getQuotesForIntent(validated.intent_id);
       } catch (e) {

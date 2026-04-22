@@ -32,12 +32,12 @@ export interface Agent {
   id: string;
   stellar_address: string;
   name: string;
-  type: 'tienda' | 'farmacia' | 'restaurant' | 'otro';
+  type: string;
   address: string;
   distance_km: number;
   available_mxn: number;
   max_trade_mxn: number;
-  tier: 'espora' | 'activo' | 'experto' | 'maestro';
+  tier: string;
   reputation: number;
   completion_rate: number;
   trades_completed: number;
@@ -45,28 +45,40 @@ export interface Agent {
   usdc_rate: number;
   amount_usdc_needed: number;
   avatar_url?: string;
-  latitude: number;
-  longitude: number;
+  latitude?: number;
+  longitude?: number;
+  score?: number;
+  avg_time_minutes?: number;
+  min_trade_mxn?: number;
 }
 
 export interface CashRequestResponse {
   request_id: string;
-  merchant_address: string;
-  merchant_name: string;
-  amount_mxn: number;
-  amount_usdc: string;
-  status: 'pending' | 'accepted' | 'completed' | 'expired';
-  qr_payload: string;
-  htlc_tx_hash: string;
-  htlc_explorer_url: string;
+  status: string;
+  merchant: {
+    name: string;
+    address: string;
+    stellar_address: string;
+    tier: string;
+  };
   exchange: {
-    rate_usdc_mxn: number;
     amount_mxn: number;
     amount_usdc: string;
+    rate_usdc_mxn: number;
+    htlc_tx_hash: string;
+    htlc_explorer_url: string;
   };
+  qr_payload: string;
   claim_url: string;
-  created_at: string;
+  instructions: string;
   expires_at: string;
+  merchant_address?: string;
+  merchant_name?: string;
+  amount_mxn_value?: number;
+  amount_usdc_value?: string;
+  htlc_tx_hash?: string;
+  htlc_explorer_url?: string;
+  created_at?: string;
 }
 
 export interface AgentsResponse {

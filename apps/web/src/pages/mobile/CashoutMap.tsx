@@ -1,10 +1,31 @@
 import { useState, useEffect } from 'react';
 import { MapView } from '../../components/domain/MapView';
-import type { Agent } from '../../types';
 
-interface DepositMapProps {
+interface Agent {
+  id: string;
+  stellar_address: string;
+  name: string;
+  type: string;
+  address: string;
+  distance_km: number;
+  available_mxn: number;
+  max_trade_mxn: number;
+  tier: string;
+  reputation: number;
+  completion_rate: number;
+  trades_completed: number;
+  online: boolean;
+  usdc_rate: number;
+  amount_usdc_needed: number;
+  latitude?: number;
+  longitude?: number;
+  score?: number;
+  avg_time_minutes?: number;
+}
+
+interface CashoutMapProps {
     onBack: () => void;
-    onSelectOffer: (offerId: string) => void;
+    onSelectOffer: (agent: Agent) => void;
     loading?: boolean;
     amountMxn?: number;
     userLat?: number;
@@ -14,12 +35,12 @@ interface DepositMapProps {
 const API_URL = import.meta.env.VITE_API_URL === '/api' ? '' : (import.meta.env.VITE_API_URL || 'http://localhost:3000');
 
 const MOCK_AGENTS: Agent[] = [
-    { id: 'GM001', stellar_address: 'GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGKUJI5KOOJ9TXWNTBBS2JN', name: 'Farmacia Guadalupe', type: 'farmacia', address: 'Orizaba 45, Roma Norte, CDMX', distance_km: 0.5, available_mxn: 5000, max_trade_mxn: 3000, tier: 'maestro', reputation: 0.95, completion_rate: 0.98, trades_completed: 312, online: true, usdc_rate: 0.0577, amount_usdc_needed: 28.88, latitude: 19.4195, longitude: -99.1627 },
-    { id: 'GM002', stellar_address: 'GDAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A', name: 'Tienda Don Pepe', type: 'tienda', address: 'Av. Álvaro Obregón 120, Roma Norte, CDMX', distance_km: 0.8, available_mxn: 3000, max_trade_mxn: 2000, tier: 'experto', reputation: 0.90, completion_rate: 0.93, trades_completed: 156, online: true, usdc_rate: 0.0577, amount_usdc_needed: 28.88, latitude: 19.4150, longitude: -99.1650 },
-    { id: 'GM003', stellar_address: 'GCF3CJXADZKIODEGZHTBQKPAGMO5KYVW6SLJ3J5GBQZDIFHGT7ZZQMFB', name: 'Papelería La Central', type: 'papeleria', address: 'Col. Condesa, CDMX', distance_km: 1.5, available_mxn: 2000, max_trade_mxn: 1500, tier: 'activo', reputation: 0.69, completion_rate: 0.88, trades_completed: 45, online: true, usdc_rate: 0.0577, amount_usdc_needed: 28.88, latitude: 19.4100, longitude: -99.1700 },
+    { id: 'GM001', stellar_address: 'GCEZWKCA5VLDNRLN3RPRJMRZOX3Z6G5CHCGKUJI5KOOJ9TXWNTBBS2JN', name: 'Farmacia Guadalupe', type: 'farmacia', address: 'Orizaba 45, Roma Norte, CDMX', distance_km: 0.5, available_mxn: 5000, max_trade_mxn: 3000, tier: 'maestro', reputation: 0.95, completion_rate: 0.98, trades_completed: 312, online: true, usdc_rate: 0.0577, amount_usdc_needed: 28.88 },
+    { id: 'GM002', stellar_address: 'GDAHK7EEG2WWHVKDNT4CEQFZGKF2LGDSW2IVM4S5DP42RBW3K6BTODB4A', name: 'Tienda Don Pepe', type: 'tienda', address: 'Av. Álvaro Obregón 120, Roma Norte, CDMX', distance_km: 0.8, available_mxn: 3000, max_trade_mxn: 2000, tier: 'experto', reputation: 0.90, completion_rate: 0.93, trades_completed: 156, online: true, usdc_rate: 0.0577, amount_usdc_needed: 28.88 },
+    { id: 'GM003', stellar_address: 'GCF3CJXADZKIODEGZHTBQKPAGMO5KYVW6SLJ3J5GBQZDIFHGT7ZZQMFB', name: 'Papelería La Central', type: 'papeleria', address: 'Col. Condesa, CDMX', distance_km: 1.5, available_mxn: 2000, max_trade_mxn: 1500, tier: 'activo', reputation: 0.69, completion_rate: 0.88, trades_completed: 45, online: true, usdc_rate: 0.0577, amount_usdc_needed: 28.88 },
 ];
 
-const DepositMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat = 19.4195, userLng = -99.1627 }: DepositMapProps) => {
+const CashoutMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat = 19.4195, userLng = -99.1627 }: CashoutMapProps) => {
     const [agents, setAgents] = useState<Agent[]>([]);
     const [loadingAgents, setLoadingAgents] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -73,9 +94,8 @@ const DepositMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat =
         }
     };
 
-    const calculateReceive = (agent: Agent) => {
-        const fee = 2;
-        return amountMxn - fee;
+    const calculateUsdcNeeded = (agent: Agent) => {
+        return parseFloat((amountMxn / usdcRate).toFixed(4));
     };
 
     return (
@@ -89,32 +109,34 @@ const DepositMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat =
                         >
                             <span className="material-symbols-outlined">arrow_back</span>
                         </button>
-                        <h1 className="font-headline font-bold text-xl text-[#00694C]">Ofertas cerca de ti</h1>
+                        <h1 className="font-headline font-bold text-xl text-[#00694C]">Retirar efectivo</h1>
                     </div>
                 </div>
             </header>
 
             <main className="max-w-xl mx-auto px-6 pt-8 space-y-8">
                 <section className="space-y-2">
-                    <span className="text-on-surface-variant font-label text-sm uppercase tracking-widest">Solicitud de depósito</span>
+                    <span className="text-on-surface-variant font-label text-sm uppercase tracking-widest">Solicitud de retiro</span>
                     <div className="flex items-baseline gap-2">
                         <h2 className="text-4xl font-headline font-extrabold text-on-surface tracking-tight">${amountMxn}</h2>
                         <span className="text-xl font-headline font-bold text-on-surface-variant">MXN</span>
                     </div>
                     <p className="text-on-surface-variant text-sm font-body">
-                        {loadingAgents ? 'Buscando agentes...' : `${agents.length} agentes encontrados cerca de ti`}
+                        {loadingAgents ? 'Buscando agentes...' : `${agents.length} agentes encontrados`}
                     </p>
                 </section>
 
-                <section>
-                    <MapView 
-                        agents={agents}
-                        userLat={userLat}
-                        userLng={userLng}
-                        selectedAgentId={agents[0]?.stellar_address}
-                        onSelectAgent={(agent) => onSelectOffer(agent.stellar_address)}
-                    />
-                </section>
+                {agents.length > 0 && (
+                    <section>
+                        <MapView 
+                            agents={agents}
+                            userLat={userLat}
+                            userLng={userLng}
+                            selectedAgentId={agents[0]?.stellar_address}
+                            onSelectAgent={(agent) => onSelectOffer(agent)}
+                        />
+                    </section>
+                )}
 
                 {error && (
                     <div className="bg-red-50 border border-red-200 rounded-xl p-4">
@@ -164,24 +186,20 @@ const DepositMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat =
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="text-right">
-                                        <span className="block text-xs text-on-surface-variant font-label uppercase">Comisión</span>
-                                        <span className="text-primary font-bold">$2 MXN</span>
-                                    </div>
                                 </div>
                                 <div className="bg-surface-container-low rounded-lg p-4 flex justify-between items-center">
                                     <div className="space-y-1">
-                                        <p className="text-[10px] text-on-surface-variant uppercase font-bold tracking-tight">Recibimos</p>
-                                        <p className="font-bold text-on-surface">${amountMxn} MXN</p>
+                                        <p className="text-[10px] text-on-surface-variant uppercase font-bold tracking-tight">Pagas</p>
+                                        <p className="font-bold text-on-surface">{calculateUsdcNeeded(agent)} USDC</p>
                                     </div>
                                     <span className="material-symbols-outlined text-outline-variant">trending_flat</span>
                                     <div className="space-y-1 text-right">
                                         <p className="text-[10px] text-accent uppercase font-bold tracking-tight">Recibes</p>
-                                        <p className="font-bold text-on-surface text-lg">${calculateReceive(agent)} MXN</p>
+                                        <p className="font-bold text-on-surface text-lg">${amountMxn} MXN</p>
                                     </div>
                                 </div>
                                 <button
-                                    onClick={() => onSelectOffer(agent.stellar_address)}
+                                    onClick={() => onSelectOffer(agent)}
                                     disabled={loading || !agent.online}
                                     className="w-full h-[46px] bg-gradient-to-r from-primary to-primary-container text-white font-semibold rounded-lg shadow-md active:scale-95 duration-200 transition-all hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
@@ -197,10 +215,9 @@ const DepositMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat =
                         <div className="flex gap-4">
                             <span className="material-symbols-outlined text-primary">info</span>
                             <p className="text-sm text-on-surface-variant leading-relaxed">
-                                Tasas basadas en el mercado actual. 1 USDC = ${usdcRate} MXN
+                                Tus USDC se bloquearán en un contrato HTLC. El agente te dará el efectivo y al escanear tu QR recibirás tus MXN.
                             </p>
                         </div>
-                        <span className="text-xs text-on-surface-variant">USD/MXN</span>
                     </div>
                 </div>
             </main>
@@ -208,4 +225,4 @@ const DepositMap = ({ onBack, onSelectOffer, loading, amountMxn = 500, userLat =
     );
 };
 
-export default DepositMap;
+export default CashoutMap;

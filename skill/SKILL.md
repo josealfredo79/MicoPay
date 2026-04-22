@@ -50,6 +50,11 @@ X-Payment: <signed_xdr>
 | `GET /skill.md` | This file |
 | `GET /api/v1/fund/stats` | Fund MicoPay live stats |
 | `GET /api/v1/cash/request/:id` | Poll cash request status |
+| `GET /api/v1/cash/trade/:id` | Get trade state from escrow contract |
+| `POST /api/v1/cash/scan` | Merchant confirms cash → releases USDC |
+| `POST /api/v1/cash/release` | Release funds with secret preimage |
+| `POST /api/v1/cash/refund` | Refund seller after timeout |
+| `WS /ws` | WebSocket notifications (cash_request, bazaar_intent) |
 
 ### Paid (x402 USDC)
 
@@ -84,7 +89,7 @@ curl -X POST -H "X-Payment: <xdr>" -H "Content-Type: application/json" \
   "https://api.micopay.xyz/api/v1/cash/request"
 # → {
 #     "claim_url": "https://app.micopay.xyz/claim/mcr-4b6c0e5c",
-#     "qr_payload": "micopay://claim?request_id=mcr-4b6c0e5c&...",
+#     "qr_payload": "micopay://claim?request_id=mcr-4b6c0e5c&merchant=GCEZWKCA5...",
 #     "instructions": "Go to Farmacia Guadalupe, Orizaba 45..."
 #   }
 
@@ -160,3 +165,23 @@ in Mexico through a verified merchant network.
 
 The merchant never receives USDC until the user physically collects the cash.
 The user never loses USDC if they don't collect — timeout returns it.
+
+---
+
+## WebSocket Notifications
+
+Subscribe to real-time notifications for cash requests:
+
+```javascript
+const ws = new WebSocket('wss://api.micopay.xyz/ws');
+
+ws.on('message', (data) => {
+  const { type, payload } = JSON.parse(data);
+  if (type === 'cash_request') {
+    console.log('New cash request:', payload.merchant_name, '$' + payload.amount_mxn + ' MXN');
+  }
+});
+
+ws.send(JSON.stringify({ action: 'subscribe_merchant', payload: { address: 'GCEZWKCA5...' } }));
+// → { type: 'subscribed', channel: 'merchant', address: '...' }
+```

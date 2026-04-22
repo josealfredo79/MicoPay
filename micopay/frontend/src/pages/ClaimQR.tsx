@@ -48,9 +48,9 @@ export default function ClaimQR({ requestId }: ClaimQRProps) {
   const [error, setError] = useState<string | null>(null);
   const countdown = useCountdown(data?.expires_at ?? null);
 
-  // Build the QR payload from the request data
+  // QR only contains the request_id — secret is NEVER in the QR
   const qrPayload = data
-    ? `micopay://claim?request_id=${data.request_id}&amount_mxn=${data.amount_mxn}&htlc=${data.htlc_tx_hash}`
+    ? `micopay://claim?request_id=${data.request_id}&merchant=${encodeURIComponent(data.merchant_address)}`
     : '';
 
   // Poll status every 4 seconds

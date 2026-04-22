@@ -24,13 +24,15 @@ interface HomeProps {
 const Home = ({ onNavigateCashout, onNavigateDeposit, walletAddress }: HomeProps) => {
   const { wallet, balance, stellarAddress, disconnect } = useWallet();
   const [trades, setTrades] = useState<TradeHistoryItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     api.account.getBalance()
       .then(({ xlm, address }) => {
         console.log('Balance:', xlm, address);
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {

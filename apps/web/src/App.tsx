@@ -1,4 +1,5 @@
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { useWallet } from "./contexts/AuthContext";
 import { LoginScreen } from "./pages/LoginScreen";
 import Home from "./pages/mobile/Home";
@@ -8,6 +9,8 @@ import DepositQR from "./pages/mobile/DepositQR";
 import DepositChat from "./pages/mobile/DepositChat";
 import SuccessScreen from "./pages/mobile/SuccessScreen";
 import CashoutRequest from "./pages/mobile/CashoutRequest";
+import CashoutMap from "./pages/mobile/CashoutMap";
+import CashoutQR from "./pages/mobile/CashoutQR";
 import Explore from "./pages/mobile/Explore";
 import Savings from "./pages/mobile/Savings";
 import DemoTerminal from "./components/demo/DemoTerminal";
@@ -15,8 +18,11 @@ import ServiceCatalog from "./components/demo/ServiceCatalog";
 import ReputationPanel from "./components/demo/ReputationPanel";
 import BazaarFeed from "./components/demo/BazaarFeed";
 import FundWidget from "./components/demo/FundWidget";
+import { api } from "./services/api";
+import type { Agent } from "./types";
+import type { CashRequestResponse } from "./pages/mobile/CashoutQR";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const API_URL = import.meta.env.VITE_API_URL === '/api' ? '' : (import.meta.env.VITE_API_URL ?? "http://localhost:3000");
 
 export default function App() {
   const { wallet, isLoading } = useWallet();
@@ -62,6 +68,16 @@ export default function App() {
       <Route path="/cashout" element={
         <ProtectedRoute>
           <CashoutRequestWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/cashout/map" element={
+        <ProtectedRoute>
+          <CashoutMapWrapper />
+        </ProtectedRoute>
+      } />
+      <Route path="/cashout/qr" element={
+        <ProtectedRoute>
+          <CashoutQRWrapper />
         </ProtectedRoute>
       } />
       <Route path="/explore" element={
@@ -202,7 +218,74 @@ function CashoutRequestWrapper() {
   return (
     <CashoutRequest 
       onBack={() => navigate(-1)}
-      onSearch={(amount: number) => navigate('/deposit/map?amount=' + amount)}
+      onSearch={(amount: number) => navigate('/cashout/map?amount=' + amount)}
+    />
+  );
+}
+
+function CashoutMapWrapper() {
+  const navigate = useNavigate();
+  const params = new URLSearchParams(window.location.search);
+  const amountMxn = parseInt(params.get('amount') || '500', 10);
+  const [loading, setLoading] = useState(false);
+  const [cashRequest, setCashRequest] = useState<CashRequestResponse | null>(null);
+
+  const handleSelectOffer = async (agent: Agent) => {
+    try {
+      setLoading(true);
+      const request = await api.cash.createRequest(agent.stellar_address, amountMxn);
+      setCashRequest(request);
+      navigate('/cashout/qr?request_id=' + request.request_id, {
+        state: { cashRequest: request }
+      });
+    } catch (err) {
+      console.error('Failed to create cash request:', err);
+      alert('Error al crear la solicitud. Intenta de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <CashoutMap
+      onBack={() => navigate(-1)}
+      onSelectOffer={handleSelectOffer}
+      loading={loading}
+      amountMxn={amountMxn}
+    />
+  );
+}
+
+function CashoutQRWrapper() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [cashRequest, setCashRequest] = useState<CashRequestResponse | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const requestId = params.get('request_id');
+    if (requestId) {
+      api.cash.getRequest(requestId)
+        .then(setCashRequest)
+        .catch(console.error);
+    }
+    
+    const state = location.state as { cashRequest?: CashRequestResponse } | null;
+    if (state?.cashRequest) {
+      setCashRequest(state.cashRequest);
+    }
+  }, [location]);
+
+  const handleSuccess = () => {
+    navigate('/success?type=cashout&amount=' + (cashRequest?.exchange?.amount_mxn || '500'));
+  };
+
+  return (
+    <CashoutQR
+      onBack={() => navigate(-1)}
+      onSuccess={handleSuccess}
+      cashRequest={cashRequest}
+      polling={true}
     />
   );
 }

@@ -125,8 +125,8 @@ export function TransactionStatus({
     );
   }
 
-  const statusConfig = STATUS_CONFIG[request.status];
-  const isPending = request.status === 'pending' || request.status === 'accepted';
+  const statusConfig = STATUS_CONFIG[request.status as keyof typeof STATUS_CONFIG] || STATUS_CONFIG.pending;
+  const isPending = request.status === 'pending' || request.status === 'accepted' || request.status === 'pending';
 
   return (
     <div className="min-h-screen bg-surface pb-32">
@@ -158,7 +158,7 @@ export function TransactionStatus({
                 Monto
               </p>
               <p className="text-4xl font-bold text-primary">
-                ${request.amount_mxn.toLocaleString('es-MX')} MXN
+                ${(request.exchange?.amount_mxn || 0).toLocaleString('es-MX')} MXN
               </p>
             </div>
 
@@ -167,12 +167,12 @@ export function TransactionStatus({
               <div className="flex justify-between text-sm">
                 <span className="text-on-surface-variant">Tasa</span>
                 <span className="font-medium">
-                  {request.exchange.rate_usdc_mxn.toFixed(4)} USDC/MXN
+                  {(request.exchange?.rate_usdc_mxn || 0).toFixed(4)} USDC/MXN
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-on-surface-variant">En USDC</span>
-                <span className="font-medium">{request.exchange.amount_usdc} USDC</span>
+                <span className="font-medium">{request.exchange?.amount_usdc || '0'} USDC</span>
               </div>
               <div className="border-t border-outline-variant/20 pt-3 flex justify-between text-sm">
                 <span className="text-on-surface-variant">Comisión MicoPay</span>
@@ -199,14 +199,14 @@ export function TransactionStatus({
                 Hash de transacción
               </p>
               <a
-                href={request.htlc_explorer_url}
+                href={request.exchange?.htlc_explorer_url || request.htlc_explorer_url || '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 p-3 bg-surface-container-low rounded-lg hover:bg-surface-container-high transition-colors"
               >
                 <span className="material-symbols-outlined text-primary">link</span>
                 <span className="font-mono text-sm truncate flex-1">
-                  {request.htlc_tx_hash}
+                  {request.exchange?.htlc_tx_hash || request.htlc_tx_hash || 'N/A'}
                 </span>
                 <span className="material-symbols-outlined text-on-surface-variant text-sm">
                   open_in_new

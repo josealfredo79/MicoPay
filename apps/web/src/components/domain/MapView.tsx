@@ -81,6 +81,8 @@ export function MapView({
     markersRef.current = [];
 
     agents.forEach((agent) => {
+      if (agent.latitude == null || agent.longitude == null) return;
+      
       const isSelected = agent.stellar_address === selectedAgentId;
       const icon = createAgentIcon(agent.tier, isSelected);
 

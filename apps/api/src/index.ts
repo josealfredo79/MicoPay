@@ -13,6 +13,7 @@ import { cetesRoutes } from "./routes/cetes.js";
 import { bazaarRoutes } from "./routes/bazaar.js";
 import { merchantRoutes } from "./routes/merchants.js";
 import { startRelayer, getRelayerStats } from "./services/relayer.js";
+import { startRefundCron, getRefundCronStatus } from "./services/refund-cron.js";
 import { initCashRequestsTable } from "./services/cash-requests.js";
 
 const PORT = parseInt(process.env.PORT ?? "3000", 10);
@@ -53,6 +54,10 @@ async function start() {
   startRelayer();
   const stats = getRelayerStats();
   console.log(`Relayer started: ${stats.total} swaps tracked`);
+
+  startRefundCron();
+  const cronStatus = getRefundCronStatus();
+  console.log(`Refund cron: ${cronStatus.running ? "running" : "disabled"}`);
 }
 
 start();
