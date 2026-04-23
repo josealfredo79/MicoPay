@@ -2,6 +2,7 @@ import type { FastifyRequest, FastifyReply, FastifyInstance } from "fastify";
 import { Networks, Transaction, Keypair } from "@stellar/stellar-sdk";
 import { isPaymentUsed, markPaymentUsed, initX402Tables, cleanupExpiredPayments } from "../db/x402.js";
 import { rateLimitByService, rateLimitStore } from "./rate-limit.js";
+import { config } from "../config.js";
 
 let x402Initialized = false;
 
@@ -87,11 +88,13 @@ function cleanupExpiredInFile(): number {
 cleanupExpiredInFile();
 
 function getPlatformAddress(): string {
-  const secret = process.env.PLATFORM_SECRET_KEY;
-  if (secret) {
-    try { return Keypair.fromSecret(secret).publicKey(); } catch (_e) { /* ignore */ }
+  if (config.platformSecretKey) {
+    try { return Keypair.fromSecret(config.platformSecretKey).publicKey(); } catch (_e) { /* ignore */ }
   }
-  return process.env.PLATFORM_STELLAR_ADDRESS ?? "GDKKW2WSMQWZ63PIZBKDDBAAOBG5FP3TUHRYQ4U5RBKTFNESL5K5BJJK";
+  if (config.platformStellarAddress) {
+    return config.platformStellarAddress;
+  }
+  throw new Error("PLATFORM_STELLAR_ADDRESS not configured");
 }
 
 const PLATFORM_ADDRESS = getPlatformAddress();
