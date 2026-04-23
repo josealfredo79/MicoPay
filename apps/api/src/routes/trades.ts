@@ -7,10 +7,10 @@ export async function tradeRoutes(app: FastifyInstance) {
   app.addHook('preHandler', authMiddleware);
 
   /**
-   * POST /trades
+   * POST /api/v1/trades
    * Buyer creates a new trade. Generates HTLC secret and returns secret_hash.
    */
-  app.post('/trades', {
+  app.post('/api/v1/trades', {
     schema: {
       body: {
         type: 'object',
@@ -40,29 +40,29 @@ export async function tradeRoutes(app: FastifyInstance) {
   });
 
   /**
-   * GET /trades/active
+   * GET /api/v1/trades/active
    * List active trades for the authenticated user.
    */
-  app.get('/trades/active', async (request) => {
+  app.get('/api/v1/trades/active', async (request) => {
     const trades = await tradeService.getActiveTrades(request.user.id);
     const safeTrades = trades.map(({ secret_enc, secret_nonce, ...t }: any) => t);
     return { trades: safeTrades };
   });
 
   /**
-   * GET /trades/history
+   * GET /api/v1/trades/history
    * All trades (active + completed) for the authenticated user, newest first.
    */
-  app.get('/trades/history', async (request) => {
+  app.get('/api/v1/trades/history', async (request) => {
     const trades = await tradeService.getTradeHistory(request.user.id);
     return { trades };
   });
 
   /**
-   * GET /trades/:id
+   * GET /api/v1/trades/:id
    * Get trade detail (only for participants).
    */
-  app.get('/trades/:id', async (request) => {
+  app.get('/api/v1/trades/:id', async (request) => {
     const { id } = request.params as { id: string };
     const trade = await tradeService.getTradeById(id, request.user.id);
 
@@ -71,29 +71,29 @@ export async function tradeRoutes(app: FastifyInstance) {
   });
 
   /**
-   * POST /trades/:id/lock
+   * POST /api/v1/trades/:id/lock
    * Backend calls Soroban contract lock() and returns the tx hash.
    */
-  app.post('/trades/:id/lock', async (request) => {
+  app.post('/api/v1/trades/:id/lock', async (request) => {
     const { id } = request.params as { id: string };
     return tradeService.lockTrade(id, request.user.id);
   });
 
   /**
-   * POST /trades/:id/reveal
+   * POST /api/v1/trades/:id/reveal
    * Seller confirms cash was received. Enables secret access.
    */
-  app.post('/trades/:id/reveal', async (request) => {
+  app.post('/api/v1/trades/:id/reveal', async (request) => {
     const { id } = request.params as { id: string };
     return tradeService.revealTrade(id, request.user.id);
   });
 
   /**
-   * GET /trades/:id/secret
+   * GET /api/v1/trades/:id/secret
    * Seller gets the HTLC secret to show QR to buyer.
    * Only available in 'revealing' state.
    */
-  app.get('/trades/:id/secret', async (request) => {
+  app.get('/api/v1/trades/:id/secret', async (request) => {
     const { id } = request.params as { id: string };
     return tradeService.getTradeSecret(
       id,
@@ -104,19 +104,19 @@ export async function tradeRoutes(app: FastifyInstance) {
   });
 
   /**
-   * POST /trades/:id/complete
+   * POST /api/v1/trades/:id/complete
    * Buyer confirms cash received. Backend calls release() on Soroban and returns the tx hash.
    */
-  app.post('/trades/:id/complete', async (request) => {
+  app.post('/api/v1/trades/:id/complete', async (request) => {
     const { id } = request.params as { id: string };
     return tradeService.completeTrade(id, request.user.id);
   });
 
   /**
-   * POST /trades/:id/cancel
+   * POST /api/v1/trades/:id/cancel
    * Either party cancels (only before lock).
    */
-  app.post('/trades/:id/cancel', async (request) => {
+  app.post('/api/v1/trades/:id/cancel', async (request) => {
     const { id } = request.params as { id: string };
     return tradeService.cancelTrade(id, request.user.id);
   });

@@ -45,11 +45,14 @@ async function checkDatabase(): Promise<ComponentHealth> {
         throw new Error("Invalid health check response");
       }
     });
+    console.log("[Health] Database: up");
     return { status: "up", latencyMs };
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("[Health] Database: down -", errorMsg);
     return {
       status: "down",
-      error: err instanceof Error ? err.message : String(err),
+      error: errorMsg,
     };
   }
 }
@@ -76,11 +79,14 @@ async function checkStellarRpc(): Promise<ComponentHealth> {
         throw new Error("Invalid RPC response");
       }
     });
+    console.log("[Health] Stellar RPC: up");
     return { status: "up", latencyMs };
   } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error("[Health] Stellar RPC: down -", errorMsg);
     return {
       status: "down",
-      error: err instanceof Error ? err.message : String(err),
+      error: errorMsg,
     };
   }
 }

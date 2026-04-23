@@ -18,6 +18,9 @@ export async function lockEscrow(
   secretHash: string,
   timeoutMinutes: number,
 ): Promise<string> {
+  console.log("[lockEscrow] Starting with amount:", amountUsdc, "secretHash:", secretHash.slice(0, 16), "...");
+  console.log("[lockEscrow] Config - mockStellar:", config.mockStellar, "escrowContractId:", config.escrowContractId ? config.escrowContractId.slice(0, 8) + "..." : "NOT SET");
+  
   if (config.mockStellar) {
     const hashPart = secretHash.slice(0, 32);
     const mockTxHash = Buffer.from(hashPart, "hex").toString("hex") + Date.now().toString(16).padStart(12, "0");
@@ -26,9 +29,11 @@ export async function lockEscrow(
   }
 
   if (!config.escrowContractId) {
+    console.error("[lockEscrow] ESCROW_CONTRACT_ID is not configured!");
     throw new EscrowLockError("ESCROW_CONTRACT_ID is not configured");
   }
   if (!config.platformSecretKey) {
+    console.error("[lockEscrow] PLATFORM_SECRET_KEY is not configured!");
     throw new EscrowLockError("PLATFORM_SECRET_KEY is not configured");
   }
 

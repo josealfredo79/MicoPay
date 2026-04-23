@@ -203,6 +203,7 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
         fastify.log.error({ err: error, requestId }, "Failed to lock escrow funds");
         
         if (error.isRetryable) {
+          fastify.log.warn(`Retryable escrow error: ${error.message}`);
           return reply.status(503).send({
             error: "Blockchain temporarily unavailable",
             message: "Unable to lock funds. Please try again in a few moments.",
@@ -210,6 +211,7 @@ export async function cashRoutes(fastify: FastifyInstance): Promise<void> {
           });
         }
         
+        fastify.log.error(`Non-retryable escrow error: ${error.message}`);
         return reply.status(500).send({
           error: "Failed to initiate transaction",
           message: "Unable to lock USDC in escrow. Please contact support.",

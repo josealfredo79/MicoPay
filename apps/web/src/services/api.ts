@@ -75,7 +75,7 @@ async function completeTrade(tradeId: string, buyerToken: string): Promise<void>
 
 async function getTradeHistory(token: string): Promise<TradeHistoryItem[]> {
   try {
-    const res = await http.get('/trades/history', authHeaders(token));
+    const res = await http.get('/api/v1/trades/history', authHeaders(token));
     return res.data.trades || [];
   } catch {
     return [];
@@ -84,7 +84,7 @@ async function getTradeHistory(token: string): Promise<TradeHistoryItem[]> {
 
 async function getAccountBalance(): Promise<AccountBalance> {
   try {
-    const res = await http.get('/account/balance');
+    const res = await http.get('/api/v1/account/balance');
     return res.data;
   } catch {
     return { xlm: '0', usdc: '0', address: '' };
