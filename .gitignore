@@ -12,6 +12,7 @@ target/
 .env.local
 .env.railway
 .env.railway.example
+railway-config.txt
 
 # Turbo
 .turbo/
