@@ -1,9 +1,9 @@
-import { useContext, type ReactNode } from 'react';
+import { useContext, type React } from 'react';
 import { AcceslyProvider, useAccesly, type WalletInfo } from 'accesly';
 
 const ACCESLY_API_KEY = import.meta.env.VITE_ACCESLY_API_KEY ?? 'acc_ec31dd100849c18b347cbc2e';
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   return (
     <AcceslyProvider
       appId={ACCESLY_API_KEY}

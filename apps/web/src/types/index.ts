@@ -25,6 +25,7 @@ export interface TradeHistoryItem {
 
 export interface AccountBalance {
   xlm: string;
+  usdc?: string;
   address: string;
 }
 

@@ -17,6 +17,7 @@ export interface SwapPlan {
   counterparty: {
     address: string;
     chain: string;
+    reputation_score?: number;
   };
   amounts: {
     sell_asset: string;
@@ -55,4 +56,5 @@ export interface CounterpartyInfo {
   avg_time_seconds: number;
   available_amount: string;
   rate: string;
+  reputation_score?: number;
 }
