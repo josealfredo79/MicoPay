@@ -12,6 +12,8 @@ import { demoRoutes } from "./routes/demo.js";
 import { cetesRoutes } from "./routes/cetes.js";
 import { bazaarRoutes } from "./routes/bazaar.js";
 import { merchantRoutes } from "./routes/merchants.js";
+import { tradeRoutes } from "./routes/trades.js";
+import { accountRoutes } from "./routes/account.js";
 import { startRelayer, getRelayerStats } from "./services/relayer.js";
 import { startRefundCron, getRefundCronStatus } from "./services/refund-cron.js";
 import { initCashRequestsTable } from "./services/cash-requests.js";
@@ -38,6 +40,8 @@ app.register(demoRoutes);
 app.register(cetesRoutes);
 app.register(bazaarRoutes);
 app.register(merchantRoutes);
+app.register(tradeRoutes);
+app.register(accountRoutes);
 
 async function start() {
   try {
