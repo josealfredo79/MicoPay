@@ -24,7 +24,7 @@ export async function healthRoutes(fastify: FastifyInstance): Promise<void> {
       return reply.send({
         status: "ok",
         service: "micopay-protocol-api",
-        version: "1.0.0",
+        version: "1.0.1",
         timestamp: new Date().toISOString(),
         payment_method: "x402",
         network: process.env.STELLAR_NETWORK ?? "testnet",
