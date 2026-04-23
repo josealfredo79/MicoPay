@@ -1,0 +1,16 @@
+{
+  "$schema": "https://railway.app/railway.json",
+  "build": {
+    "builder": "nixpacks",
+    "buildCommand": "npm install && npm run build",
+    "startCommand": "node --import tsx apps/api/src/index.ts",
+    "env": {
+      "NODE_VERSION": "20"
+    }
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "restartPolicyType": "on_failure",
+    "restartPolicyMaxRetries": 10
+  }
+}
