@@ -1,12 +1,30 @@
+# Railway Environment Variables para MicoPay API
+# Copia este archivo y completa los valores en Railway
+
+# Puerto (Railway default)
 PORT=8080
+
+# Modo desarrollo para testing
 NODE_ENV=development
-DATABASE_URL=postgresql://neondb_owner:npg_AGvFow1M6zxa@ep-wandering-recipe-anstrv0h-pooler.c-6.us-east-1.aws.neon.tech/neondb?sslmode=verify-full
+
+# PostgreSQL (Neon) - completa con tu URL
+DATABASE_URL=postgresql://neondb_owner:TU_PASSWORD@TU_HOST/neondb?sslmode=verify-full
+
+# JWT
 JWT_SECRET=micopay-production-secret-key-2024-secure
+
+# Stellar
 STELLAR_NETWORK=TESTNET
-MOCK_STELLAR=true
+MOCK_STELLAR=false
 STELLAR_RPC_URL=https://soroban-testnet.stellar.org
-ESCROW_CONTRACT_ID=CA7F66DXPRSNS4TJGKOZX7BNWBD4FWDKJZ65BEMVMZVHLFY3XCFTTIEV
-PLATFORM_SECRET_KEY=SBRANW6PIV2MDSWPYGZDP23WYDXE6MGTPKGJPCIAVRFB364YEEA2KN4P
-PLATFORM_STELLAR_ADDRESS=GCWHVOZVHW4ZGZ2XJOAFLBFN3NTUKGURHKSNUMA3LYGKXR22TT6LECC6
+
+# Escrow Contract - deployado en testnet
+ESCROW_CONTRACT_ID=CBTDA3BG3ZKYTJKFOFH5OXX7PWATTTBRNGPQ7UXUPEJA4MPYPNELBTSZ
+
+# Plataforma (genera con: stellar keys generate testnet)
+# Luego obten las keys con: stellar keys show testnet
+PLATFORM_SECRET_KEY=SCBHAHO2OHS45VWLER624UOWEIFQH4ROFEX3RDF5PFTN4O526WVPIONY
+PLATFORM_STELLAR_ADDRESS=GAE2SI3SNW6KAZ43GMPTJ5WRFVQYGJCU7R7TUYF4BO55F6WS7XXCZNJL
+
+# Encryption key (32 chars)
 SECRET_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef
-ANTHROPIC_API_KEY=
