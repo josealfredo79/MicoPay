@@ -97,37 +97,27 @@ async function checkContractDeployed(contractId: string): Promise<ContractStatus
   }
 
   try {
-    const key = {
-      type: "contract" as const,
-      contractId,
-    };
-
     const response = await fetch(config.stellarRpcUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         jsonrpc: "2.0",
         id: 1,
-        method: "getLedgerEntry",
-        params: {
-          key: {
-            type: "Contract",
-            contractId,
-          },
-        },
+        method: "getContractData",
+        params: [contractId, "last"],
       }),
     });
 
     if (!response.ok) {
-      if (response.status === 404) {
-        return { deployed: false, error: "Contract not found" };
+      if (response.status === 404 || response.status === 400) {
+        return { deployed: false, error: "Contract not found on network" };
       }
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    const data = await response.json() as { result?: unknown };
-    if (!data.result) {
-      return { deployed: false, error: "Empty response" };
+    const data = await response.json() as { result?: unknown; error?: { message?: string } };
+    if (data.error?.message || !data.result) {
+      return { deployed: false, error: "Contract not found on network" };
     }
 
     return { deployed: true };
