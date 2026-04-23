@@ -1,12 +1,8 @@
 {
   "$schema": "https://railway.app/railway.json",
   "build": {
-    "builder": "nixpacks",
-    "buildCommand": "npm install && npm run build",
-    "startCommand": "node --import tsx apps/api/src/index.ts",
-    "env": {
-      "NODE_VERSION": "20"
-    }
+    "builder": "dockerfile",
+    "dockerfile": "Dockerfile.railway"
   },
   "deploy": {
     "numReplicas": 1,

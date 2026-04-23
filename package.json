@@ -13,7 +13,8 @@
     "test": "turbo test",
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
-    "check": "npm run lint && npm run build && npm run test"
+    "check": "npm run lint && npm run build && npm run test",
+    "start:api": "cd apps/api && npm run start"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

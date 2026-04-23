@@ -10,6 +10,12 @@ target/
 # Secretos y Config
 .env
 .env.local
+.env.railway*
+
+# Turbo
+.turbo/
+apps/*/.turbo/
+packages/*/.turbo/
 
 # OS
 .DS_Store
