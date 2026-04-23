@@ -10,7 +10,8 @@ target/
 # Secretos y Config
 .env
 .env.local
-.env.railway*
+.env.railway
+.env.railway.example
 
 # Turbo
 .turbo/
