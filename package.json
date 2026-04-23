@@ -14,7 +14,8 @@
     "lint": "turbo lint",
     "lint:fix": "turbo lint:fix",
     "check": "npm run lint && npm run build && npm run test",
-    "start:api": "cd apps/api && npm run start"
+    "start:api": "cd apps/api && npm run start",
+    "start": "node --import tsx apps/api/src/index.ts"
   },
   "devDependencies": {
     "turbo": "^2.3.3",

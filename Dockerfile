@@ -20,4 +20,4 @@ COPY apps/api/ ./apps/api/
 EXPOSE 3000
 
 # Start the API
-CMD ["npm", "run", "start:api"]
+CMD ["node", "--import", "tsx", "apps/api/src/index.ts"]
