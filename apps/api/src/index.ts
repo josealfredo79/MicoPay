@@ -25,6 +25,8 @@ console.log("NODE_ENV:", config.nodeEnv);
 console.log("DATABASE_URL:", config.databaseUrl ? "[SET]" : "[NOT SET]");
 console.log("STELLAR_NETWORK:", config.stellarNetwork);
 console.log("ESCROW_CONTRACT_ID:", config.escrowContractId ? config.escrowContractId.slice(0, 8) + "..." : "NOT SET");
+console.log("PLATFORM_STELLAR_ADDRESS:", config.platformStellarAddress ? config.platformStellarAddress.slice(0, 8) + "..." : "NOT SET");
+console.log("PLATFORM_SECRET_KEY:", config.platformSecretKey ? "[SET]" : "[NOT SET]");
 console.log("MOCK_STELLAR:", config.mockStellar);
 
 const app = Fastify({
