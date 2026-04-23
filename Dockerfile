@@ -3,13 +3,13 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy all files first for better caching
-COPY package*.json turbo.json tsconfig*.json ./
-COPY packages/ ./packages/
+# Copy package files
+COPY package.json package-lock.json ./
 COPY apps/api/package*.json ./apps/api/
-COPY apps/api/tsconfig*.json ./apps/api/
+COPY packages/sdk/package*.json ./packages/sdk/
+COPY packages/types/package*.json ./packages/types/
 
-# Install ALL dependencies (including dev for tsx)
+# Install dependencies with workspaces
 RUN npm install
 
 # Copy source code
