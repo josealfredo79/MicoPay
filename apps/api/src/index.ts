@@ -20,18 +20,15 @@ import { startRefundCron, getRefundCronStatus } from "./services/refund-cron.js"
 import { initCashRequestsTable } from "./services/cash-requests.js";
 
 console.log("=== MICOPAY API STARTUP ===");
-console.log("PORT:", process.env.PORT);
-console.log("NODE_ENV:", process.env.NODE_ENV);
-console.log("DATABASE_URL:", process.env.DATABASE_URL ? "[SET]" : "[NOT SET]");
-console.log("STELLAR_NETWORK:", process.env.STELLAR_NETWORK);
-console.log("ESCROW_CONTRACT_ID:", process.env.ESCROW_CONTRACT_ID);
-console.log("PLATFORM_SECRET_KEY:", process.env.PLATFORM_SECRET_KEY ? "[SET]" : "[NOT SET]");
-console.log("MOCK_STELLAR:", process.env.MOCK_STELLAR);
-console.log("=== CONFIG:", config);
-const NODE_ENV = process.env.NODE_ENV ?? "development";
+console.log("PORT:", config.port);
+console.log("NODE_ENV:", config.nodeEnv);
+console.log("DATABASE_URL:", config.databaseUrl ? "[SET]" : "[NOT SET]");
+console.log("STELLAR_NETWORK:", config.stellarNetwork);
+console.log("ESCROW_CONTRACT_ID:", config.escrowContractId ? config.escrowContractId.slice(0, 8) + "..." : "NOT SET");
+console.log("MOCK_STELLAR:", config.mockStellar);
 
 const app = Fastify({
-  logger: NODE_ENV === "development",
+  logger: config.nodeEnv === "development",
   trustProxy: true,
 });
 
@@ -53,16 +50,25 @@ app.register(tradeRoutes);
 app.register(accountRoutes);
 
 async function start() {
-  try {
-    await initCashRequestsTable();
-    console.log("Database initialized: cash_requests table ready");
-  } catch (err) {
-    console.warn("Database initialization skipped (no DB configured):", err);
+  if (config.databaseUrl) {
+    try {
+      await initCashRequestsTable();
+      console.log("Database initialized: cash_requests table ready");
+    } catch (err) {
+      console.warn("Database initialization failed:", err);
+    }
+  } else {
+    console.warn("Database initialization skipped: DATABASE_URL not set");
   }
 
-  await app.listen({ port: PORT, host: "0.0.0.0" });
-  console.log(`MicoPay API running on http://localhost:${PORT}`);
-  console.log(`WebSocket available at ws://localhost:${PORT}/ws`);
+  try {
+    await app.listen({ host: "0.0.0.0", port: config.port });
+    console.log(`MicoPay API running on port ${config.port}`);
+    console.log(`WebSocket available at ws://localhost:${config.port}/ws`);
+  } catch (err) {
+    console.error("Failed to start server:", err);
+    process.exit(1);
+  }
   
   startRelayer();
   const stats = getRelayerStats();

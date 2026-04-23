@@ -3,19 +3,24 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Copy package files for workspace
+# Install dependencies first for better caching
 COPY package*.json ./
-COPY apps/api/package*.json ./apps/api/
-COPY packages/*/package*.json ./packages/
-
-# Install root deps + workspaces
 RUN npm install --omit=dev
 
-# Copy API source
+COPY apps/api/package*.json ./apps/api/
+RUN npm install --omit=dev --prefix ./apps/api
+
+COPY packages/*/package*.json ./packages/
+
+# Copy source
 COPY apps/api ./apps/api
 
-# Expose port
-EXPOSE 3000
+# Railway default port (can be overridden by PORT env var)
+EXPOSE 8080
 
-# Start API
+# Health check - Railway expects this
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
+
+# Start - Railway injects PORT env var
 CMD ["node", "--import", "tsx", "apps/api/src/index.ts"]

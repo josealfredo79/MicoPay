@@ -38,6 +38,9 @@ async function measureLatency(fn: () => Promise<void>): Promise<{ latencyMs: num
 }
 
 async function checkDatabase(): Promise<ComponentHealth> {
+  if (!config.databaseUrl) {
+    return { status: "down", error: "Database not configured" };
+  }
   try {
     const { latencyMs } = await measureLatency(async () => {
       const result = await query("SELECT 1 as health");
