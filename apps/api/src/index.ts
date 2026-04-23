@@ -1,4 +1,5 @@
 import "./config.js";
+import { config } from "./config.js";
 import Fastify from "fastify";
 import fastifyCors from "@fastify/cors";
 import { registerRateLimit } from "./plugins/rate-limit.js";
@@ -18,7 +19,15 @@ import { startRelayer, getRelayerStats } from "./services/relayer.js";
 import { startRefundCron, getRefundCronStatus } from "./services/refund-cron.js";
 import { initCashRequestsTable } from "./services/cash-requests.js";
 
-const PORT = parseInt(process.env.PORT ?? "3000", 10);
+console.log("=== MICOPAY API STARTUP ===");
+console.log("PORT:", process.env.PORT);
+console.log("NODE_ENV:", process.env.NODE_ENV);
+console.log("DATABASE_URL:", process.env.DATABASE_URL ? "[SET]" : "[NOT SET]");
+console.log("STELLAR_NETWORK:", process.env.STELLAR_NETWORK);
+console.log("ESCROW_CONTRACT_ID:", process.env.ESCROW_CONTRACT_ID);
+console.log("PLATFORM_SECRET_KEY:", process.env.PLATFORM_SECRET_KEY ? "[SET]" : "[NOT SET]");
+console.log("MOCK_STELLAR:", process.env.MOCK_STELLAR);
+console.log("=== CONFIG:", config);
 const NODE_ENV = process.env.NODE_ENV ?? "development";
 
 const app = Fastify({

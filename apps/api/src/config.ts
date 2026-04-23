@@ -93,6 +93,14 @@ function validateEnv() {
 
 const env = validateEnv();
 
+console.log("[Config] NODE_ENV:", env.NODE_ENV);
+console.log("[Config] STELLAR_NETWORK:", env.STELLAR_NETWORK);
+console.log("[Config] STELLAR_RPC_URL:", env.STELLAR_RPC_URL);
+console.log("[Config] ESCROW_CONTRACT_ID:", env.ESCROW_CONTRACT_ID ? env.ESCROW_CONTRACT_ID.slice(0, 8) + "..." : "NOT SET");
+console.log("[Config] PLATFORM_SECRET_KEY:", env.PLATFORM_SECRET_KEY ? "SET" : "NOT SET");
+console.log("[Config] PLATFORM_STELLAR_ADDRESS:", env.PLATFORM_STELLAR_ADDRESS ? env.PLATFORM_STELLAR_ADDRESS.slice(0, 8) + "..." : "NOT SET");
+console.log("[Config] MOCK_STELLAR:", env.MOCK_STELLAR);
+
 export const config = {
   port: env.PORT,
   nodeEnv: env.NODE_ENV,
