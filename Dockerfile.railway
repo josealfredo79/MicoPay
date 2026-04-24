@@ -1,26 +1,62 @@
 # MicoPay API - Dockerfile para Railway
+# Usar node:18 o node:20 para compatibilidad
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Install dependencies first for better caching
-COPY package*.json ./
-RUN npm install --omit=dev
+# ==============================================================================
+# ETAPA 1: Dependencias del workspace raíz
+# ==============================================================================
+# Copiar TODOS los package.json primero para mejor cache
+COPY package.json package-lock.json ./
+COPY turbo.json ./
 
-COPY apps/api/package*.json ./apps/api/
-RUN npm install --omit=dev --prefix ./apps/api
+# Copiar package.json de todos los apps y packages
+COPY apps/*/package.json ./apps/
+COPY packages/*/package.json ./packages/
 
-COPY packages/*/package*.json ./packages/
+# Instalar dependencias del workspace raíz (incluye turbo)
+RUN npm install
 
-# Copy source
-COPY apps/api ./apps/api
+# ==============================================================================
+# ETAPA 2: Copiar fuentes completos
+# ==============================================================================
+COPY apps ./apps
+COPY packages ./packages
 
-# Railway default port (can be overridden by PORT env var)
+# ==============================================================================
+# ETAPA 3: Construir packages primero (son dependencias del API)
+# ==============================================================================
+# Construir los packages antes que el API porque el API depende de ellos
+RUN npx turbo build --filter=@micopay/types --filter=@micopay/sdk
+
+# Construir el API
+RUN npx turbo build --filter=@micopay/api
+
+# ==============================================================================
+# ETAPA 4: Limpiar devDependencies para producción
+# ==============================================================================
+# En apps/api,留下的 solo las production dependencies
+RUN npm prune --production
+
+# ==============================================================================
+# ETAPA 5: Configuración runtime
+# ==============================================================================
+# railway.json usa 8080 por defecto
+ENV PORT=8080
+ENV NODE_ENV=production
+
+# ==============================================================================
+# ETAPA 6: Health check
+# ==============================================================================
 EXPOSE 8080
 
-# Health check - Railway expects this
+# Health check - verificar que el servidor responda
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:8080/health || exit 1
 
-# Start - Railway injects PORT env var
-CMD ["node", "--import", "tsx", "apps/api/src/index.ts"]
+# ==============================================================================
+# ETAPA 7:-start - ejecutar el built JavaScript
+# ==============================================================================
+# IMPORTANTE: Ejecutar el JS compilado, NO TypeScript fuente
+CMD ["node", "apps/api/dist/index.js"]

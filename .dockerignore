@@ -1,0 +1,43 @@
+# Dependencies
+node_modules
+
+# Build outputs (we rebuild in Docker)
+apps/*/dist
+packages/*/dist
+
+# Test files
+**/*.test.ts
+**/*.spec.ts
+**/__tests__
+
+# Git
+.git
+.gitignore
+
+# Development
+.env
+.env.local
+.env.*.local
+*.md
+README*
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Railway config (secrets)
+railway-config.txt
+railway.json
+
+# Claude
+.claude
+
+# Turbo cache
+.turbo
+node_modules/.cache
