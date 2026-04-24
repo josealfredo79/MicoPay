@@ -11,14 +11,11 @@ target/
 .env
 .env.local
 .env.railway
-.env.railway.example
+.env.railway_example
 railway-config.txt
 railway-config.example
-vars-*.env
 .env-railway
-
-# Turbo
-.turbo/
+vars-*.env
 apps/*/.turbo/
 packages/*/.turbo/
 
