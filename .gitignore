@@ -14,6 +14,8 @@ target/
 .env.railway.example
 railway-config.txt
 railway-config.example
+vars-*.env
+.env-railway
 
 # Turbo
 .turbo/
@@ -35,3 +37,4 @@ brain/
 task.md
 implementation_plan.md
 walkthrough.md
+railway-config.txt
