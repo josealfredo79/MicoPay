@@ -22,9 +22,8 @@ function loadEnv() {
   }
 }
 
-if (process.env.NODE_ENV !== 'production') {
-  loadEnv();
-}
+// Always load .env file - Railway variables take precedence
+loadEnv();
 
 const envSchema = z.object({
   PORT: z.string().default('3000').transform(Number),
